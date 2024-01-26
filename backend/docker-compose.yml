@@ -23,7 +23,7 @@ services:
     image: postgres:15
     container_name: database
     volumes:
-      - ~/.pg/pg_data/devrel_hack:/var/lib/postgresql/data
+      - ~/.pg/pg_data/nolabel_hack:/var/lib/postgresql/data
     env_file:
       - .env
     ports:
