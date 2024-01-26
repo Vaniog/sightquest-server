@@ -92,7 +92,7 @@ services:
     build:
       context: ./backend
       dockerfile: ./docker/backend/Dockerfile
-    command: celery -A mailer worker -l info
+    command: celery -A backend worker -l info
     volumes:
       - ./backend:/backend
     env_file:

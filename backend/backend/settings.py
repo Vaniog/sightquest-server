@@ -191,7 +191,8 @@ CACHES = {
 }
 
 CELERY_CACHE_BACKEND = "default"
-CELERY_IMPORTS = ("mailer.tasks",)
+# Сюда добавлять новые приложения, которые используют shared таски
+CELERY_IMPORTS = ()
 
 # Logging
 
