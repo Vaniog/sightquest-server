@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     # External
     "rest_framework",
     "rest_framework_swagger",
+    "rest_framework_simplejwt",
     "drf_yasg",
     # Celery
     "django_celery_results",
@@ -185,6 +186,11 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
 }
+
+SIMPLE_JWT = {
+    "TOKEN_OBTAIN_SERIALIZER": "apps.users.serializers.CustomTokenObtainPairSerializer",
+}
+
 
 # CELERY
 
