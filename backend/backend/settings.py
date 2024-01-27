@@ -49,6 +49,7 @@ CORS_ALLOW_CREDENTIALS = False
 # Application definition
 
 INSTALLED_APPS = [
+    "channels",
     "jazzmin",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -67,6 +68,10 @@ INSTALLED_APPS = [
     "apps.api",
     "apps.users",
 ]
+
+# ASGI
+ASGI_APPLICATION = "backend.asgi.application"
+CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
 
 # User model
 AUTH_USER_MODEL = "users.CustomUser"
