@@ -11,9 +11,9 @@ class ChatConsumer(WebsocketConsumer):
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name, self.channel_name
         )
-        self.send(text_data=json.dumps({"type": "chat", "message": "connected!"}))
-
         self.accept()
+
+        self.send(text_data=json.dumps({"type": "chat", "message": "connected!"}))
 
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
