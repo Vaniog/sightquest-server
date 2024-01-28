@@ -1,4 +1,4 @@
-from apps.api.views import lobby
+from apps.sockets.views import lobby
 from django.contrib import admin
 
 # Docs

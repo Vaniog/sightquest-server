@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     # Celery
     "django_celery_results",
     # Custom
+    "apps.sockets",
     "apps.api",
     "apps.users",
 ]
