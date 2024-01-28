@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import mark_safe
 
-from .models import Coordinate, QuestPoint
+from .models import Coordinate, PlayerLobby, QuestPoint
 
 
 # Register your models here.
@@ -29,3 +29,10 @@ class QuestPointAdmin(admin.ModelAdmin):
         if obj.image:
             return mark_safe('<img src="%s" width="50" height="50" />' % obj.image.url)
         return "No Image"
+
+
+@admin.register(PlayerLobby)
+class PlayerLobbyAdmin(admin.ModelAdmin):
+    list_display = ["id", "host", "created_at"]
+    list_filter = ["host"]
+    search_fields = ["host__username"]
