@@ -1,3 +1,4 @@
+from apps.api.models import PlayerLobby
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
@@ -33,6 +34,14 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     id = models.AutoField(primary_key=True)
     username = models.CharField(max_length=255, unique=True)
     avatar = models.ImageField(upload_to="avatars/", null=True, blank=True)
+
+    hosted_lobby = models.OneToOneField(
+        PlayerLobby,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="host",
+    )
 
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)

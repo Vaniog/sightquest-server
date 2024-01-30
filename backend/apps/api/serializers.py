@@ -13,18 +13,24 @@ class PlayerLobbySerializer(serializers.ModelSerializer):
     questpoints = serializers.PrimaryKeyRelatedField(
         many=True, queryset=QuestPoint.objects.all()
     )
+    host_id = serializers.SerializerMethodField()
 
     class Meta:
         model = PlayerLobby
         fields = [
             "id",
-            "host",
+            "host_id",
             "players",
             "questpoints",
             "created_at",
             "started_at",
             "duration",
         ]
+
+    def get_host_id(self, obj):
+        if obj.host:
+            return obj.host.id
+        return None
 
     def update(self, instance, validated_data):
         instance.players.set(validated_data.get("players", instance.players.all()))

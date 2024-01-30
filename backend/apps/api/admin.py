@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.utils.html import mark_safe
 
 from .models import (
+    City,
     Coordinate,
     LobbyPhoto,
     PlayerLobby,
@@ -9,6 +10,7 @@ from .models import (
     QuestCompleted,
     QuestPoint,
     QuestTask,
+    Region,
 )
 
 
@@ -66,8 +68,13 @@ class QuestPointAdmin(admin.ModelAdmin):
 # Админ класс для лобби игрока
 @admin.register(PlayerLobby)
 class PlayerLobbyAdmin(admin.ModelAdmin):
-    list_display = ["id", "host", "created_at", "started_at", "duration"]
+    list_display = ["id", "host_info", "created_at", "started_at", "duration"]
     inlines = [PlayerLobbyMembershipInline, LobbyPhotoInline, QuestCompletedInline]
+
+    def host_info(self, obj):
+        return f"{obj.host.username}"
+
+    host_info.short_description = "Host"
 
 
 # Админ класс для фотографий лобби
@@ -80,3 +87,14 @@ class LobbyPhotoAdmin(admin.ModelAdmin):
 @admin.register(QuestCompleted)
 class QuestCompletedAdmin(admin.ModelAdmin):
     list_display = ["id", "lobby", "user", "task"]
+
+
+# Админ класс для городов и регионов
+@admin.register(Region)
+class RegionAdmin(admin.ModelAdmin):
+    list_display = ["id", "name"]
+
+
+@admin.register(City)
+class CityAdmin(admin.ModelAdmin):
+    list_display = ["id", "name", "region"]

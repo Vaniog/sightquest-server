@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from rest_framework import generics, status
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
@@ -9,10 +10,34 @@ from .serializers import (
     QuestCompletedSerializer,
 )
 
+User = get_user_model()
+
 
 class PlayerLobbyListView(generics.ListCreateAPIView):
     queryset = PlayerLobby.objects.all()
     serializer_class = PlayerLobbySerializer
+
+    def post(self, request, *args, **kwargs):
+        # user = request.user
+        user = User.objects.get(id=1)
+        if user.hosted_lobby:
+            return Response(
+                {
+                    "message": "User is already hosting a lobby",
+                    "lobby_id": user.hosted_lobby.id,
+                },
+                status=status.HTTP_200_OK,
+            )
+        else:
+            lobby = PlayerLobby.objects.create()
+            user.hosted_lobby = lobby
+            user.save()
+            lobby.players.add(user)  # Добавляем пользователя в список игроков
+            lobby.save()
+            return Response(
+                {"message": "New lobby created", "lobby_id": lobby.id},
+                status=status.HTTP_201_CREATED,
+            )
 
 
 class PlayerLobbyDetailView(generics.RetrieveUpdateAPIView):
