@@ -3,9 +3,9 @@ from rest_framework import generics, status
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 
-from .models import LobbyPhoto, PlayerLobby, QuestCompleted
+from .models import GamePhoto, PlayerLobby, QuestCompleted
 from .serializers import (
-    LobbyPhotoSerializer,
+    GamePhotoSerializer,
     PlayerLobbySerializer,
     QuestCompletedSerializer,
 )
@@ -45,9 +45,9 @@ class PlayerLobbyDetailView(generics.RetrieveUpdateAPIView):
     serializer_class = PlayerLobbySerializer
 
 
-class LobbyPhotoCreateView(generics.CreateAPIView):
-    queryset = LobbyPhoto.objects.all()
-    serializer_class = LobbyPhotoSerializer
+class GamePhotoCreateView(generics.CreateAPIView):
+    queryset = GamePhoto.objects.all()
+    serializer_class = GamePhotoSerializer
     parser_classes = (
         MultiPartParser,
         FormParser,

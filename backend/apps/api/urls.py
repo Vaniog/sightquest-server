@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import include, path, re_path
 
 from .views import (
-    LobbyPhotoCreateView,
+    GamePhotoCreateView,
     PlayerLobbyDetailView,
     PlayerLobbyListView,
     QuestCompletedCreateView,
@@ -16,7 +16,7 @@ urlpatterns = [
         PlayerLobbyDetailView.as_view(),
         name="player-lobby-detail",
     ),
-    path("lobby-photos/", LobbyPhotoCreateView.as_view(), name="lobby-photo-create"),
+    path("lobby-photos/", GamePhotoCreateView.as_view(), name="lobby-photo-create"),
     path(
         "quest-completed/",
         QuestCompletedCreateView.as_view(),

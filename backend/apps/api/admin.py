@@ -4,9 +4,9 @@ from django.utils.html import mark_safe
 from .models import (
     City,
     Coordinate,
-    LobbyPhoto,
-    PlayerLobby,
-    PlayerLobbyMembership,
+    GamePhoto,
+    Lobby,
+    LobbyMembership,
     QuestCompleted,
     QuestPoint,
     QuestTask,
@@ -15,14 +15,14 @@ from .models import (
 
 
 # Inline класс для Membership модели
-class PlayerLobbyMembershipInline(admin.TabularInline):
-    model = PlayerLobbyMembership
+class LobbyMembershipInline(admin.TabularInline):
+    model = LobbyMembership
     extra = 1
 
 
 # Inline класс для фотографий лобби
-class LobbyPhotoInline(admin.TabularInline):
-    model = LobbyPhoto
+class GamePhotoInline(admin.TabularInline):
+    model = GamePhoto
     extra = 1
 
 
@@ -66,10 +66,10 @@ class QuestPointAdmin(admin.ModelAdmin):
 
 
 # Админ класс для лобби игрока
-@admin.register(PlayerLobby)
-class PlayerLobbyAdmin(admin.ModelAdmin):
+@admin.register(Lobby)
+class LobbyAdmin(admin.ModelAdmin):
     list_display = ["id", "host_info", "created_at", "started_at", "duration"]
-    inlines = [PlayerLobbyMembershipInline, LobbyPhotoInline, QuestCompletedInline]
+    inlines = [LobbyMembershipInline, GamePhotoInline, QuestCompletedInline]
 
     def host_info(self, obj):
         return f"{obj.host.username}"
@@ -78,8 +78,8 @@ class PlayerLobbyAdmin(admin.ModelAdmin):
 
 
 # Админ класс для фотографий лобби
-@admin.register(LobbyPhoto)
-class LobbyPhotoAdmin(admin.ModelAdmin):
+@admin.register(GamePhoto)
+class GamePhotoAdmin(admin.ModelAdmin):
     list_display = ["id", "lobby", "image", "upload_time"]
 
 

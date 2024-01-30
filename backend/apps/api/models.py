@@ -14,6 +14,7 @@ def lobby_image_file_path(instance, filename):
     return "lobby_photos/{0}/{1}".format(instance.lobby.id, filename)
 
 
+# Содель координат
 class Coordinate(models.Model):
     latitude = models.DecimalField(max_digits=12, decimal_places=9)
     longitude = models.DecimalField(max_digits=12, decimal_places=9)
@@ -27,8 +28,11 @@ class QuestTask(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
 
+    def __str__(self):
+        return self.title
 
-# Модели для расширения
+
+# Модели для расширения (регион и город)
 class Region(models.Model):
     name = models.CharField(max_length=255, unique=True)
 
@@ -69,44 +73,68 @@ class QuestPoint(models.Model):
 
 
 # Модель лобби игрока
-class PlayerLobby(models.Model):
+class Lobby(models.Model):
     players = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
-        through="PlayerLobbyMembership",
+        through="LobbyMembership",
         related_name="lobbies",
     )
-    questpoints = models.ManyToManyField(QuestPoint, related_name="lobbies")
     created_at = models.DateTimeField(auto_now_add=True)
-    started_at = models.DateTimeField(default=timezone.now)
-    duration = models.DurationField(default=timedelta(hours=1))
 
 
-# Промежуточная модель для PlayerLobby и User
-class PlayerLobbyMembership(models.Model):
+# Промежуточная модель для Lobby и User
+class LobbyMembership(models.Model):
     player = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    lobby = models.ForeignKey(PlayerLobby, on_delete=models.CASCADE)
+    lobby = models.ForeignKey(Lobby, on_delete=models.CASCADE)
     date_joined = models.DateTimeField(auto_now_add=True)
 
 
+# Модель для настроек игры
+class GameSettings(models.Model):
+    mode = models.CharField(max_length=50)
+    duration = models.DurationField(default=timedelta(hours=1))
+
+    def __str__(self):
+        return f"{self.mode}, Duration: {self.duration}"
+
+
+# Класс игры
+class Game(models.Model):
+    lobby = models.ForeignKey(Lobby, on_delete=models.CASCADE)
+    settings = models.ForeignKey(GameSettings, on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(default=timezone.now)
+
+
 # Модель фото лобби
-class LobbyPhoto(models.Model):
-    lobby = models.ForeignKey(
-        PlayerLobby, on_delete=models.CASCADE, related_name="photos"
-    )
+class GamePhoto(models.Model):
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name="photos")
     image = models.ImageField(upload_to=lobby_image_file_path)
     upload_time = models.DateTimeField(auto_now_add=True)
 
 
-# Модель завершенного квеста
-class QuestCompleted(models.Model):
-    lobby = models.ForeignKey(
-        PlayerLobby, on_delete=models.CASCADE, related_name="completed_quests"
+# Модель для заданий внутри игры
+class GameQuestTask(models.Model):
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name="game_tasks")
+    quest_task = models.ForeignKey(
+        QuestTask, on_delete=models.CASCADE, related_name="game_tasks"
     )
-    user = models.ForeignKey(
+
+    def __str__(self):
+        return f"{self.game} - {self.quest_task}"
+
+
+# Модель для выполнения задачи игроком
+class PlayerTaskCompletion(models.Model):
+    player = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="completed_quests",
+        related_name="task_completions",
     )
-    task = models.ForeignKey(
-        QuestTask, on_delete=models.CASCADE, related_name="completed_by"
+    game_task = models.ForeignKey(
+        GameQuestTask, on_delete=models.CASCADE, related_name="task_completions"
     )
+    completed_at = models.DateTimeField()
+
+    def __str__(self):
+        return f"{self.player} completed {self.game_task} at {self.completed_at}"

@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from .models import LobbyPhoto, PlayerLobby, QuestCompleted, QuestPoint, QuestTask
+from .models import GamePhoto, PlayerLobby, QuestCompleted, QuestPoint, QuestTask
 
 User = get_user_model()
 
@@ -41,9 +41,9 @@ class PlayerLobbySerializer(serializers.ModelSerializer):
         return instance
 
 
-class LobbyPhotoSerializer(serializers.ModelSerializer):
+class GamePhotoSerializer(serializers.ModelSerializer):
     class Meta:
-        model = LobbyPhoto
+        model = GamePhoto
         fields = ["lobby", "image", "upload_time"]
 
 
