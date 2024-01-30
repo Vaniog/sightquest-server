@@ -1,4 +1,4 @@
-from apps.sockets.views import lobby
+from apps.sockets.views import lobby_socket
 from django.contrib import admin
 
 # Docs
@@ -35,5 +35,5 @@ urlpatterns = [
     # Custom
     path("admin/", admin.site.urls),
     path("api/", include("apps.api.urls")),
-    path("", lobby),
+    path("", lobby_socket),
 ]

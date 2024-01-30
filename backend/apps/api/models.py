@@ -28,6 +28,22 @@ class QuestTask(models.Model):
     description = models.TextField()
 
 
+# Модели для расширения
+class Region(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+class City(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    region = models.ForeignKey(Region, on_delete=models.CASCADE, related_name="cities")
+
+    def __str__(self):
+        return self.name
+
+
 # Модель точки квеста
 class QuestPoint(models.Model):
     title = models.CharField(
@@ -35,23 +51,25 @@ class QuestPoint(models.Model):
     )
     description = models.TextField(blank=False, null=False, default="No description")
     location = models.ForeignKey(
-        Coordinate, on_delete=models.CASCADE, related_name="quest_points", null=True
+        Coordinate, on_delete=models.SET_NULL, related_name="quest_points", null=True
     )
     image = models.ImageField(upload_to="quest_point_images/", null=True)
     tasks = models.ForeignKey(
-        QuestTask, on_delete=models.CASCADE, related_name="quest_points", null=True
+        QuestTask, on_delete=models.SET_NULL, related_name="quest_points", null=True
+    )
+    city = models.ForeignKey(
+        City, on_delete=models.SET_NULL, related_name="quest_points", null=True
     )
 
     def product_image(self):
         return mark_safe('<img src="%s" width="50" height="50" />' % (self.image.url))
 
+    def __str__(self):
+        return self.title
+
 
 # Модель лобби игрока
 class PlayerLobby(models.Model):
-    host = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-    )
     players = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         through="PlayerLobbyMembership",

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Lobby Test</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+      #messages {
+        border: 1px solid #ddd;
+        padding: 10px;
+        margin-top: 20px;
+        height: 300px;
+        overflow-y: scroll;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Test Lobby WebSocket</h1>
+    <button id="createLobby">Create Lobby</button>
+    <button id="connectWebSocket" disabled>Connect to WebSocket</button>
+    <div>
+      <label for="lobbyId">Enter Lobby ID:</label>
+      <input type="text" id="lobbyId" placeholder="Lobby ID" />
+      <button id="joinLobby">Join Lobby</button>
+    </div>
+
+    <div id="messages"></div>
+
+    <script>
+      var currentLobbyId = null;
+
+      function createLobby() {
+        $.ajax({
+          url: "/api/player-lobbies/",
+          method: "POST",
+          contentType: "application/json",
+          data: JSON.stringify({
+            players: [],
+            questpoints: [1],
+          }),
+          success: function (data) {
+            console.log("Lobby created:", data);
+            currentLobbyId = data.id; // Сохранение ID лобби
+            $("#connectWebSocket").prop("disabled", false);
+          },
+          error: function (error) {
+            console.error("Error creating lobby:", error);
+          },
+        });
+      }
+
+      function connectWebSocket() {
+        if (!currentLobbyId) {
+          console.error("Lobby ID is not set");
+          return;
+        }
+        const socket = new WebSocket(
+          `ws://${window.location.host}/ws/lobby/${currentLobbyId}/`
+        );
+
+        socket.onopen = function (e) {
+          console.log("Connection established");
+        };
+
+        socket.onmessage = function (e) {
+          const data = JSON.parse(e.data);
+          console.log("Message received:", data);
+          $("#messages").append("<p>" + JSON.stringify(data, null, 2) + "</p>");
+        };
+
+        socket.onclose = function (e) {
+          console.log("Connection closed");
+        };
+
+        socket.onerror = function (error) {
+          console.error("WebSocket Error:", error);
+        };
+      }
+
+      function joinLobby() {
+        var lobbyId = $("#lobbyId").val();
+        if (lobbyId) {
+          currentLobbyId = lobbyId;
+          connectWebSocket();
+        } else {
+          console.error("Lobby ID is required");
+        }
+      }
+
+      $(document).ready(function () {
+        $("#createLobby").click(createLobby);
+        $("#connectWebSocket").click(connectWebSocket);
+        $("#joinLobby").click(joinLobby);
+      });
+    </script>
+  </body>
+</html>
