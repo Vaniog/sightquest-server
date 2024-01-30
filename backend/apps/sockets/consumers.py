@@ -1,9 +1,9 @@
 import json
 
-from apps.api.models import PlayerLobby
-from apps.api.serializers import PlayerLobbySerializer
+# from apps.api.models import PlayerLobby
+# from apps.api.serializers import PlayerLobbySerializer
 from asgiref.sync import async_to_sync
-from channels.generic.websocket import AsyncWebsocketConsumer, WebsocketConsumer
+from channels.generic.websocket import WebsocketConsumer
 
 
 class ChatConsumer(WebsocketConsumer):
@@ -31,38 +31,43 @@ class ChatConsumer(WebsocketConsumer):
         self.send(text_data=json.dumps({"type": "chat", "message": message}))
 
 
-class LobbyConsumer(AsyncWebsocketConsumer):
-    async def connect(self):
+class LobbyConsumer(WebsocketConsumer):
+    def connect(self):
         self.lobby_id = self.scope["url_route"]["kwargs"]["lobby_id"]
         self.lobby_group_name = "lobby_%s" % self.lobby_id
 
-        await self.channel_layer.group_add(self.lobby_group_name, self.channel_name)
+        async_to_sync(self.channel_layer.group_add)(
+            self.lobby_group_name, self.channel_name
+        )
 
-        await self.accept()
+        self.accept()
 
-        await self.send_lobby_info()
+        async_to_sync(self.channel_layer.group_send)(
+            self.lobby_group_name,
+            {
+                "type": "lobby_message",
+                "message": f"Player joined lobby {self.lobby_id}",
+            },
+        )
 
-    async def send_lobby_info(self):
-        try:
-            lobby = PlayerLobby.objects.get(pk=self.lobby_id)
-            lobby_data = PlayerLobbySerializer(lobby).data
-            await self.send(text_data=json.dumps({"lobby_info": lobby_data}))
-        except PlayerLobby.DoesNotExist:
-            await self.close()
+        self.send_lobby_info()
 
-    # Получение сообщения от WebSocket
-    async def receive(self, text_data):
+    def send_lobby_info(self):
+        # try:
+        # lobby = PlayerLobby.objects.get(pk=self.lobby_id)
+        # lobby_data = PlayerLobbySerializer(lobby).data
+        self.send(text_data=json.dumps({"lobby_info": f"{self.lobby_id}"}))
+        # except PlayerLobby.DoesNotExist:
+        #     self.close()
+
+    def receive(self, text_data):
         text_data_json = json.loads(text_data)
         message = text_data_json["message"]
-
-        # Отправка сообщения в группу лобби
-        await self.channel_layer.group_send(
+        self.channel_layer.group_send(
             self.lobby_group_name, {"type": "lobby_message", "message": message}
         )
 
-    # Получение сообщения из группы лобби
-    async def lobby_message(self, event):
+    def lobby_message(self, event):
         message = event["message"]
 
-        # Отправка сообщения в WebSocket
-        await self.send(text_data=json.dumps({"message": message}))
+        self.send(text_data=json.dumps({"message": message}))
