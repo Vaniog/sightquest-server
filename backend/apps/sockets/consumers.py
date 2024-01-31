@@ -124,7 +124,11 @@ class GameConsumer(WebsocketConsumer):
         elif event_type == "location_update":
             self.receive_location_update(text_data_json)
         else:
-            self.send(text_data=json.dumps({"message": f"Event {event_type} doesn't supported"}))
+            self.group_send(text_data)
+
+    @login_required
+    def group_send(self, data):
+        self.channel_layer.group_send(data)
 
     def receive_authorization(self, data_json):
         print(int(data_json["token"]))
