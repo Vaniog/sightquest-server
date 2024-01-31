@@ -3,9 +3,9 @@ from rest_framework import generics, status
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 
-from .models import GamePhoto
+from .models import GamePhoto, Game
 from .serializers import (
-    GamePhotoSerializer
+    GamePhotoSerializer, GameSerializer
 )
 
 User = get_user_model()
@@ -26,3 +26,13 @@ class GamePhotoCreateView(generics.CreateAPIView):
             return Response(file_serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GameListCreateView(generics.ListCreateAPIView):
+    queryset = Game.objects.all()
+    serializer_class = GameSerializer
+
+
+class GameDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Game.objects.all()
+    serializer_class = GameSerializer

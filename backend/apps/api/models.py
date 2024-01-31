@@ -95,6 +95,13 @@ class Game(models.Model):
     started_at = models.DateTimeField(default=timezone.now)
     ended_at = models.DateTimeField(null=True)
 
+    STATE_CHOICES = [
+        ('LOBBY', 'Lobby'),
+        ('PLAYING', 'Playing'),
+        ('ENDED', 'Ended'),
+    ]
+    state = models.CharField(max_length=10, choices=STATE_CHOICES, default='LOBBY')
+
     def __str__(self):
         return f"Game hosted by {self.host.username} created at {self.created_at}"
 
