@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game Test</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        #messages {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 20px;
+            height: 300px;
+            overflow-y: scroll;
+        }
+    </style>
+</head>
+<body>
+<h1>Test Game WebSocket</h1>
+<button id="createGame">Create Game</button>
+<button id="connectWebSocket" disabled>Connect to WebSocket</button>
+<div>
+    <label for="gameId">Enter Game ID:</label>
+    <input type="text" id="gameId" placeholder=" ID"/>
+    <button id="joinGame">Join Game</button>
+</div>
+<div>
+    <label for="userId">Enter User ID:</label>
+    <input type="text" id="userId" placeholder=" ID"/>
+    <button id="authorize">Authorize</button>
+</div>
+<div>
+    <label for="latitude"></label><input type="text" id="latitude" placeholder="latitude"/>
+    <label for="longitude"></label><input type="text" id="longitude" placeholder="longitude"/>
+    <button id="sendCoords">Send coords</button>
+</div>
+
+<div id="messages"></div>
+
+<script>
+    var currentGameId = 0;
+
+    function createGame() {
+        $.ajax({
+            url: "/api/games/",
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({
+                players: [],
+                tasks: [1],
+                settings: 1
+            }),
+            success: function (data) {
+                console.log("Game created:", data);
+                currentGameId = data.id; // Сохранение ID лобби
+                $("#connectWebSocket").prop("disabled", false);
+            },
+            error: function (error) {
+                console.error("Error creating game:", error);
+            },
+        });
+    }
+
+    var socket = null
+
+    function connectWebSocket() {
+        socket = new WebSocket(
+            `ws://${window.location.host}/ws/game/${currentGameId}/`
+        );
+        if (!currentGameId) {
+            console.error("Game ID is not set");
+            return;
+        }
+
+        socket.onopen = function (e) {
+            console.log("Connection established");
+        };
+
+        socket.onmessage = function (e) {
+            const data = JSON.parse(e.data);
+            console.log("Message received:", data);
+            $("#messages").append("<p>" + JSON.stringify(data, null, 2) + "</p>");
+        };
+
+        socket.onclose = function (e) {
+            console.log("Connection closed");
+        };
+
+        socket.onerror = function (error) {
+            console.error("WebSocket Error:", error);
+        };
+
+        console.log("done")
+    }
+
+    function joinGame() {
+        var gameId = $("#gameId").val();
+        if (gameId) {
+            currentGameId = gameId;
+            connectWebSocket();
+        } else {
+            console.error("Game ID is required");
+        }
+    }
+
+    function authorize() {
+        var userId = $("#userId").val();
+        if (userId) {
+            socket.send(
+                JSON.stringify({
+                    "event": "authorization",
+                    "token": userId
+                })
+            )
+        } else {
+            console.error("User ID is required");
+        }
+
+    }
+
+    function sendCoords() {
+        var latitude = $("#latitude").val();
+        var longitude = $("#longitude").val();
+        socket.send(
+            JSON.stringify({
+                "event": "location_update",
+                "user_id": $("#userId").val(),
+                "coordinates": {
+                    latitude, longitude
+                }
+            })
+        )
+    }
+
+    $(document).ready(function () {
+        $("#createGame").click(createGame);
+        $("#connectWebSocket").click(connectWebSocket);
+        $("#joinGame").click(joinGame);
+        $("#authorize").click(authorize);
+        $("#sendCoords").click(sendCoords);
+    });
+</script>
+</body>
+</html>

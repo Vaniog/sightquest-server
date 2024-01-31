@@ -1,4 +1,4 @@
-from apps.sockets.views import lobby_socket
+from apps.sockets.views import lobby_socket, game_socket
 from django.contrib import admin
 
 # Docs
@@ -9,7 +9,7 @@ from rest_framework import permissions
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="Djoser API",
+        title="API",
         default_version="v1",
         description="API for NoLabelAPI hackyhon",
         license=openapi.License(name="MIT License"),
@@ -36,4 +36,5 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include("apps.api.urls")),
     path("", lobby_socket),
+    path("game", game_socket),
 ]
