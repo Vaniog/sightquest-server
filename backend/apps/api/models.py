@@ -23,15 +23,6 @@ class Coordinate(models.Model):
         return f"({self.latitude}, {self.longitude})"
 
 
-# Модель задачи квеста
-class QuestTask(models.Model):
-    title = models.CharField(max_length=255)
-    description = models.TextField()
-
-    def __str__(self):
-        return self.title
-
-
 # Модели для расширения (регион и город)
 class Region(models.Model):
     name = models.CharField(max_length=255, unique=True)
@@ -55,38 +46,30 @@ class QuestPoint(models.Model):
     )
     description = models.TextField(blank=False, null=False, default="No description")
     location = models.ForeignKey(
-        Coordinate, on_delete=models.SET_NULL, related_name="quest_points", null=True
+        Coordinate, on_delete=models.SET_NULL, null=True
     )
     image = models.ImageField(upload_to="quest_point_images/", null=True)
-    tasks = models.ForeignKey(
-        QuestTask, on_delete=models.SET_NULL, related_name="quest_points", null=True
-    )
     city = models.ForeignKey(
         City, on_delete=models.SET_NULL, related_name="quest_points", null=True
     )
 
     def product_image(self):
-        return mark_safe('<img src="%s" width="50" height="50" />' % (self.image.url))
+        return mark_safe('<img src="%s" width="50" height="50" />' % self.image.url)
 
     def __str__(self):
         return self.title
 
 
-# Модель лобби игрока
-class Lobby(models.Model):
-    players = models.ManyToManyField(
-        settings.AUTH_USER_MODEL,
-        through="LobbyMembership",
-        related_name="lobbies",
+# Модель задачи квеста
+class QuestTask(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    quest_point = models.ForeignKey(
+        QuestPoint, on_delete=models.SET_NULL, related_name="tasks", null=True
     )
-    created_at = models.DateTimeField(auto_now_add=True)
 
-
-# Промежуточная модель для Lobby и User
-class LobbyMembership(models.Model):
-    player = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    lobby = models.ForeignKey(Lobby, on_delete=models.CASCADE)
-    date_joined = models.DateTimeField(auto_now_add=True)
+    def __str__(self):
+        return f"{self.quest_point.title}: {self.title}"
 
 
 # Модель для настроек игры
@@ -100,10 +83,25 @@ class GameSettings(models.Model):
 
 # Класс игры
 class Game(models.Model):
-    lobby = models.ForeignKey(Lobby, on_delete=models.CASCADE)
-    settings = models.ForeignKey(GameSettings, on_delete=models.SET_NULL, null=True)
+    host = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="owned_games", on_delete=models.SET_NULL, null=True)
+    players = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        through="GameUser",
+        related_name="games",
+    )
+    tasks = models.ManyToManyField(QuestTask, through="GameQuestTask")
+    settings = models.ForeignKey(GameSettings, related_name="game", on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     started_at = models.DateTimeField(default=timezone.now)
+    ended_at = models.DateTimeField(null=True)
+
+    def __str__(self):
+        return f"Game hosted by {self.host.username} created at {self.created_at}"
+
+
+class GameUser(models.Model):
+    player = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)
 
 
 # Модель фото лобби
@@ -117,7 +115,7 @@ class GamePhoto(models.Model):
 class GameQuestTask(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name="game_tasks")
     quest_task = models.ForeignKey(
-        QuestTask, on_delete=models.CASCADE, related_name="game_tasks"
+        QuestTask, on_delete=models.CASCADE
     )
 
     def __str__(self):

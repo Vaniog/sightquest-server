@@ -5,19 +5,14 @@ from .models import (
     City,
     Coordinate,
     GamePhoto,
-    Lobby,
-    LobbyMembership,
-    QuestCompleted,
     QuestPoint,
     QuestTask,
     Region,
+    GameSettings,
+    Game,
+    GameUser,
+    GameQuestTask, PlayerTaskCompletion
 )
-
-
-# Inline класс для Membership модели
-class LobbyMembershipInline(admin.TabularInline):
-    model = LobbyMembership
-    extra = 1
 
 
 # Inline класс для фотографий лобби
@@ -26,9 +21,13 @@ class GamePhotoInline(admin.TabularInline):
     extra = 1
 
 
-# Inline класс для завершенных квестов
-class QuestCompletedInline(admin.TabularInline):
-    model = QuestCompleted
+class GameUserInline(admin.TabularInline):
+    model = GameUser
+    extra = 1
+
+
+class GameQuestTaskInline(admin.TabularInline):
+    model = GameQuestTask
     extra = 1
 
 
@@ -37,12 +36,6 @@ class QuestCompletedInline(admin.TabularInline):
 class CoordinateAdmin(admin.ModelAdmin):
     list_display = ("latitude", "longitude")
     search_fields = ("latitude", "longitude")
-
-
-# Админ класс для задач квеста
-@admin.register(QuestTask)
-class QuestTaskAdmin(admin.ModelAdmin):
-    list_display = ["id", "title", "description"]
 
 
 # Админ класс для точек квеста
@@ -65,28 +58,10 @@ class QuestPointAdmin(admin.ModelAdmin):
         return "No Image"
 
 
-# Админ класс для лобби игрока
-@admin.register(Lobby)
-class LobbyAdmin(admin.ModelAdmin):
-    list_display = ["id", "host_info", "created_at", "started_at", "duration"]
-    inlines = [LobbyMembershipInline, GamePhotoInline, QuestCompletedInline]
-
-    def host_info(self, obj):
-        return f"{obj.host.username}"
-
-    host_info.short_description = "Host"
-
-
 # Админ класс для фотографий лобби
 @admin.register(GamePhoto)
 class GamePhotoAdmin(admin.ModelAdmin):
-    list_display = ["id", "lobby", "image", "upload_time"]
-
-
-# Админ класс для завершенных квестов
-@admin.register(QuestCompleted)
-class QuestCompletedAdmin(admin.ModelAdmin):
-    list_display = ["id", "lobby", "user", "task"]
+    list_display = ["id", "game", "image", "upload_time"]
 
 
 # Админ класс для городов и регионов
@@ -98,3 +73,40 @@ class RegionAdmin(admin.ModelAdmin):
 @admin.register(City)
 class CityAdmin(admin.ModelAdmin):
     list_display = ["id", "name", "region"]
+
+
+@admin.register(QuestTask)
+class QuestTaskAdmin(admin.ModelAdmin):
+    list_display = ('title', 'description', 'quest_point')  # Поля, которые будут отображаться в списке объектов
+    search_fields = ('title', 'description', 'quest_point__title')  # Поля, по которым можно производить поиск
+    list_filter = ('quest_point',)  # Фильтры в боковой панели
+    ordering = ('title',)  # Сортировка
+
+
+@admin.register(GameSettings)
+class GameSettingsAdmin(admin.ModelAdmin):
+    list_display = ('mode', 'duration')  # Поля, которые будут отображаться в списке объектов
+    search_fields = ('mode',)  # Поля, по которым можно производить поиск
+    ordering = ('mode',)  # Сортировка
+
+
+@admin.register(Game)
+class GameAdmin(admin.ModelAdmin):
+    list_display = (
+        'host', 'created_at', 'started_at', 'ended_at')  # Поля, которые будут отображаться в списке объектов
+    search_fields = (
+        'host__username', 'created_at', 'started_at', 'ended_at')  # Поля, по которым можно производить поиск
+    list_filter = ('host', 'created_at', 'started_at')  # Фильтры в боковой панели
+    ordering = ('-created_at',)  # Сортировка (по умолчанию в порядке убывания)
+    filter_horizontal = ('players', 'tasks')  # Добавляет виджет выбора множественных значений для players и tasks
+    inlines = [GameUserInline, GameQuestTaskInline]
+
+
+@admin.register(PlayerTaskCompletion)
+class PlayerTaskCompletionAdmin(admin.ModelAdmin):
+    list_display = ('player', 'game_task', 'completed_at')  # Поля, которые будут отображаться в списке объектов
+    search_fields = (
+        'player__username', 'game_task__game__host__username',
+        'completed_at')  # Поля, по которым можно производить поиск
+    list_filter = ('player', 'game_task__game')  # Фильтры в боковой панели
+    ordering = ('-completed_at',)  # Сортировка (по умолчанию в порядке убывания)
