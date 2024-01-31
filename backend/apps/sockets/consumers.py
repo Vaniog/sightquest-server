@@ -118,20 +118,31 @@ class GameConsumer(WebsocketConsumer):
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
         event_type = text_data_json["event"]
-        print(f"event: {event_type}")
         if event_type == "authorization":
             self.receive_authorization(text_data_json)
-        elif event_type == "location_update":
-            self.receive_location_update(text_data_json)
+        # Майку на подумать
+        # elif event_type == "location_update":
+        #     self.receive_location_update(text_data_json)
         else:
-            self.group_send(text_data)
+            self.group_resend(text_data)
 
     @login_required
-    def group_send(self, data):
-        self.channel_layer.group_send(data)
+    def group_resend(self, data):
+        print(self.game_group_name)
+        async_to_sync(self.channel_layer.group_send)(
+            self.game_group_name, {
+                "type": "resend",
+                "sender_id": self.user.id,
+                "data": data
+            }
+        )
+
+    def resend(self, data):
+        # Майку на подумать
+        # if data["sender_id"] != self.user.id:
+        self.send(text_data=data["data"])
 
     def receive_authorization(self, data_json):
-        print(int(data_json["token"]))
         self.user = User.objects.filter(id=int(data_json["token"])).first()
         if self.user not in self.game.players.all():
             self.send(text_data=json.dumps({"status": f"you arent in game"}))
@@ -144,18 +155,18 @@ class GameConsumer(WebsocketConsumer):
 
     @login_required
     def receive_location_update(self, data_json):
-        self.channel_layer.group_send(
+        async_to_sync(self.channel_layer.group_send)(
             self.game_group_name, {
                 "type": "location_update",
-                "user_id": data_json["user_id"],
+                "sender_id": self.user.id,
                 "coordinates": data_json["coordinates"]
             }
         )
-        self.users_coords[data_json["user_id"]] = data_json["coordinates"]
+        self.users_coords[self.user.id] = data_json["coordinates"]
         self.send(text_data=json.dumps(self.users_coords))
 
     def location_update(self, data_json):
-        self.users_coords[data_json["user_id"]] = data_json["coordinates"]
+        self.users_coords[data_json["sender_id"]] = data_json["coordinates"]
 
     def disconnect(self, close_code):
         # Leave room group
