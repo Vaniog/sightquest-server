@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from .models import GamePhoto, QuestTask, Game, GameSettings
+from .models import Game, GamePhoto, GameSettings, QuestTask
 
 User = get_user_model()
 
@@ -28,6 +28,7 @@ class GameSerializer(serializers.ModelSerializer):
         model = Game
         fields = [
             "id",
+            "code",
             "host_id",
             "players",
             "tasks",

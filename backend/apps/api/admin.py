@@ -4,18 +4,22 @@ from django.utils.html import mark_safe
 from .models import (
     City,
     Coordinate,
+    Game,
     GamePhoto,
+    GameQuestTask,
+    GameSettings,
+    GameUser,
+    PlayerTaskCompletion,
     QuestPoint,
     QuestTask,
     Region,
-    GameSettings,
-    Game,
-    GameUser,
-    GameQuestTask, PlayerTaskCompletion
 )
 
 
-# Inline класс для фотографий лобби
+class QuestTaskInline(admin.TabularInline):
+    model = QuestTask
+    extra = 1
+
 class GamePhotoInline(admin.TabularInline):
     model = GamePhoto
     extra = 1
@@ -26,9 +30,9 @@ class GameUserInline(admin.TabularInline):
     extra = 1
 
 
-class GameQuestTaskInline(admin.TabularInline):
+class GameQuestTaskInline(admin.TabularInline): 
     model = GameQuestTask
-    extra = 1
+    extra = 1 
 
 
 # Админ класс для координат
@@ -44,6 +48,7 @@ class QuestPointAdmin(admin.ModelAdmin):
     list_display = ("title", "description_short", "location", "product_image")
     search_fields = ("title", "description")
     list_filter = ("location",)
+    inlines = [QuestTaskInline]
 
     def description_short(self, obj):
         return (
@@ -77,36 +82,35 @@ class CityAdmin(admin.ModelAdmin):
 
 @admin.register(QuestTask)
 class QuestTaskAdmin(admin.ModelAdmin):
-    list_display = ('title', 'description', 'quest_point')  # Поля, которые будут отображаться в списке объектов
-    search_fields = ('title', 'description', 'quest_point__title')  # Поля, по которым можно производить поиск
-    list_filter = ('quest_point',)  # Фильтры в боковой панели
-    ordering = ('title',)  # Сортировка
+    list_display = ('title', 'description', 'quest_point')  
+    search_fields = ('title', 'description', 'quest_point__title') 
+    list_filter = ('quest_point',) 
+    ordering = ('title',) 
 
 
 @admin.register(GameSettings)
 class GameSettingsAdmin(admin.ModelAdmin):
-    list_display = ('mode', 'duration')  # Поля, которые будут отображаться в списке объектов
-    search_fields = ('mode',)  # Поля, по которым можно производить поиск
-    ordering = ('mode',)  # Сортировка
+    list_display = ('mode', 'duration')
+    search_fields = ('mode',) 
+    ordering = ('mode',) 
 
 
 @admin.register(Game)
 class GameAdmin(admin.ModelAdmin):
     list_display = (
-        'host', 'created_at', 'started_at', 'ended_at')  # Поля, которые будут отображаться в списке объектов
+        'host', 'code', 'created_at', 'started_at', 'ended_at')  
     search_fields = (
-        'host__username', 'created_at', 'started_at', 'ended_at')  # Поля, по которым можно производить поиск
-    list_filter = ('host', 'created_at', 'started_at')  # Фильтры в боковой панели
-    ordering = ('-created_at',)  # Сортировка (по умолчанию в порядке убывания)
-    filter_horizontal = ('players', 'tasks')  # Добавляет виджет выбора множественных значений для players и tasks
-    inlines = [GameUserInline, GameQuestTaskInline]
-
+        'host__username', 'code', 'created_at', 'started_at', 'ended_at')  
+    list_filter = ('host', 'created_at', 'started_at')  
+    ordering = ('-created_at',)  
+    filter_horizontal = ('players', 'tasks') 
+    inlines = [GameUserInline, GameQuestTaskInline] 
 
 @admin.register(PlayerTaskCompletion)
 class PlayerTaskCompletionAdmin(admin.ModelAdmin):
-    list_display = ('player', 'game_task', 'completed_at')  # Поля, которые будут отображаться в списке объектов
+    list_display = ('player', 'game_task', 'completed_at')  
     search_fields = (
         'player__username', 'game_task__game__host__username',
-        'completed_at')  # Поля, по которым можно производить поиск
-    list_filter = ('player', 'game_task__game')  # Фильтры в боковой панели
-    ordering = ('-completed_at',)  # Сортировка (по умолчанию в порядке убывания)
+        'completed_at') 
+    list_filter = ('player', 'game_task__game') 
+    ordering = ('-completed_at',)  
