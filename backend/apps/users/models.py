@@ -9,11 +9,13 @@ from django.utils import timezone
 
 
 class CustomUserManager(BaseUserManager):
-    def create_user(self, username, avatar=None, password=None, **extra_fields):
+    def create_user(self, username, password=None, **extra_fields):
         if not username:
             raise ValueError("Users must have a username")
+        if not password:
+            raise ValueError("Password is required")
 
-        user = self.model(username=username, avatar=avatar, **extra_fields)
+        user = self.model(username=username, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user

@@ -1,40 +1,34 @@
-from rest_framework import status
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView
+from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .models import CustomUser
-from .serializers import CustomTokenObtainPairSerializer, CustomUserSerializer
+from .serializers import (
+    CustomTokenObtainPairSerializer,
+    UserDetailSerializer,
+    UserListSerializer,
+)
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
 
-class CustomUserDetailView(RetrieveUpdateAPIView):
+class CustomUserDetailView(generics.RetrieveUpdateAPIView):
     queryset = CustomUser.objects.all()
-    serializer_class = CustomUserSerializer
-    lookup_field = "id"
+    serializer_class = UserDetailSerializer
+    lookup_field = "username"
 
-    def patch(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"request": self.request})
+        return context
 
-
-class CustomUserListView(ListCreateAPIView):
+class CustomUserListView(generics.ListCreateAPIView):
     queryset = CustomUser.objects.all()
-    serializer_class = CustomUserSerializer
+    serializer_class = UserListSerializer 
 
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return UserListSerializer
+        return super().get_serializer_class() 
