@@ -13,8 +13,10 @@ class GamePhotoSerializer(serializers.ModelSerializer):
 
 
 class GameSerializer(serializers.ModelSerializer):
-    players = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=User.objects.all()
+    players = serializers.SlugRelatedField(
+        slug_field='username',
+        many=True,
+        queryset=User.objects.all()
     )
     tasks = serializers.PrimaryKeyRelatedField(
         many=True, queryset=QuestTask.objects.all()
@@ -22,14 +24,14 @@ class GameSerializer(serializers.ModelSerializer):
     settings = serializers.PrimaryKeyRelatedField(
         queryset=GameSettings.objects.all()
     )
-    host_id = serializers.SerializerMethodField()
+    host_username = serializers.SerializerMethodField()
+
 
     class Meta:
         model = Game
         fields = [
-            "id",
             "code",
-            "host_id",
+            "host_username",
             "players",
             "tasks",
             "settings",
@@ -39,14 +41,20 @@ class GameSerializer(serializers.ModelSerializer):
             "state",
         ]
 
-    def get_host_id(self, obj):
+    def get_host_username(self, obj):
         if obj.host:
-            return obj.host.id
+            return obj.host.username
         return None
 
     def update(self, instance, validated_data):
-        instance.players.set(validated_data.get("players", instance.players.all()))
-        instance.tasks.set(validated_data.get("tasks", instance.tasks.all()))
-        instance.settings = validated_data.get("settings", instance.settings)
+        if 'players' in validated_data:
+            player_usernames = validated_data.pop('players')
+            players = User.objects.filter(username__in=player_usernames)
+            instance.players.set(players)
+        if 'tasks' in validated_data:
+            instance.tasks.set(validated_data.get('tasks', instance.tasks.all()))
+        if 'settings' in validated_data:
+            instance.settings = validated_data.get('settings', instance.settings)
+        
         instance.save()
         return instance
