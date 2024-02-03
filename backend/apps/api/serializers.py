@@ -45,7 +45,7 @@ class SettingsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GameSettings
-        fields = ["mode", "duration", "tasks", "quest_points"]
+        fields = ["mode", "duration", "quest_points"]
 
 
 class UserSerializer(serializers.ModelSerializer):
