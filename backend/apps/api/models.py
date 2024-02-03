@@ -6,6 +6,8 @@ from django.utils import timezone
 from django.utils.html import mark_safe
 from shortuuid.django_fields import ShortUUIDField
 
+from backend.yandex_s3_storage import ClientDocsStorage
+
 
 def quest_directiory_path(instance, filename):
     return "quest_points/{0}".format(filename)
@@ -46,10 +48,10 @@ class QuestPoint(models.Model):
         max_length=255, blank=False, null=False, default="No title"
     )
     description = models.TextField(blank=False, null=False, default="No description")
-    location = models.ForeignKey(
-        Coordinate, on_delete=models.SET_NULL, null=True
+    location = models.ForeignKey(Coordinate, on_delete=models.SET_NULL, null=True)
+    image = models.ImageField(
+        upload_to="quest_point_images/", null=True, storage=ClientDocsStorage()
     )
-    image = models.ImageField(upload_to="quest_point_images/", null=True)
     city = models.ForeignKey(
         City, on_delete=models.SET_NULL, related_name="quest_points", null=True
     )
@@ -76,6 +78,7 @@ class QuestTask(models.Model):
             return f"No Quest Point: {self.title}"
 
 
+
 # Модель для настроек игры
 class GameSettings(models.Model):
     mode = models.CharField(max_length=50)
@@ -88,19 +91,34 @@ class GameSettings(models.Model):
 
 # Класс игры
 class Game(models.Model):
-    host = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="owned_games", on_delete=models.SET_NULL, null=True)
-    settings = models.ForeignKey(GameSettings, related_name="game", on_delete=models.SET_NULL, null=True)
-    code = ShortUUIDField(unique=True, length=8, alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+    host = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name="owned_games",
+        on_delete=models.SET_NULL,
+        null=True,
+    )
+    players = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        through="GameUser",
+        related_name="games",
+    )
+    tasks = models.ManyToManyField(QuestTask, through="GameQuestTask")
+    settings = models.ForeignKey(
+        GameSettings, related_name="game", on_delete=models.SET_NULL, null=True
+    )
+    code = ShortUUIDField(
+        unique=True, length=8, alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     started_at = models.DateTimeField(default=timezone.now)
     ended_at = models.DateTimeField(null=True)
 
     STATE_CHOICES = [
-        ('LOBBY', 'Lobby'),
-        ('PLAYING', 'Playing'),
-        ('ENDED', 'Ended'),
+        ("LOBBY", "Lobby"),
+        ("PLAYING", "Playing"),
+        ("ENDED", "Ended"),
     ]
-    state = models.CharField(max_length=10, choices=STATE_CHOICES, default='LOBBY')
+    state = models.CharField(max_length=10, choices=STATE_CHOICES, default="LOBBY")
 
     def __str__(self):
         return f"Game #{self.code}"
@@ -119,7 +137,9 @@ class GameUser(models.Model):
 # Модель фото лобби
 class GamePhoto(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name="photos")
-    image = models.ImageField(upload_to=lobby_image_file_path)
+    image = models.ImageField(
+        upload_to=lobby_image_file_path, storage=ClientDocsStorage()
+    )
     upload_time = models.DateTimeField(auto_now_add=True)
 
 

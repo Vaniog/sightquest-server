@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
+
 import os
 from pathlib import Path
 
@@ -206,8 +207,21 @@ CACHES = {
 }
 
 CELERY_CACHE_BACKEND = "default"
+
+
 # Сюда добавлять новые приложения, которые используют shared таски
 CELERY_IMPORTS = ()
+
+
+# Yandex Cloud settings
+YANDEX_BUCKET_NAME = os.getenv("YANDEX_BUCKET_NAME")
+DEFAULT_FILE_STORAGE = "yandex_s3_storage.ClientDocsStorage"
+YANDEX_CLIENT_DOCS_BUCKET_NAME = "client-docs"
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+AWS_S3_ENDPOINT_URL = "https://storage.yandexcloud.net"
+AWS_S3_REGION_NAME = "storage"
+
 
 # Logging
 LOGGING = {
