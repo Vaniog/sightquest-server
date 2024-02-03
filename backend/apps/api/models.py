@@ -71,11 +71,11 @@ class QuestTask(models.Model):
     def __str__(self):
         return f"{self.quest_point.title}: {self.title}"
 
-
 # Модель для настроек игры
 class GameSettings(models.Model):
     mode = models.CharField(max_length=50)
     duration = models.DurationField(default=timedelta(hours=1))
+    tasks = models.ManyToManyField(QuestTask, through="GameQuestTask")
 
     def __str__(self):
         return f"{self.mode}, Duration: {self.duration}"
@@ -84,12 +84,6 @@ class GameSettings(models.Model):
 # Класс игры
 class Game(models.Model):
     host = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="owned_games", on_delete=models.SET_NULL, null=True)
-    players = models.ManyToManyField(
-        settings.AUTH_USER_MODEL,
-        through="GameUser",
-        related_name="games",
-    )
-    tasks = models.ManyToManyField(QuestTask, through="GameQuestTask")
     settings = models.ForeignKey(GameSettings, related_name="game", on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     started_at = models.DateTimeField(default=timezone.now)
@@ -107,8 +101,13 @@ class Game(models.Model):
 
 
 class GameUser(models.Model):
-    player = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    game = models.ForeignKey(Game, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name="players")
+    STATE_CHOICES = [
+        ('RUNNER', 'Runner'),
+        ('CATCHER', 'Catcher')
+    ]
+    role = models.CharField(max_length=10, choices=STATE_CHOICES, default='CATCHER')
 
 
 # Модель фото лобби
@@ -120,21 +119,21 @@ class GamePhoto(models.Model):
 
 # Модель для заданий внутри игры
 class GameQuestTask(models.Model):
-    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name="game_tasks")
+    settings = models.ForeignKey(GameSettings, on_delete=models.CASCADE)
     quest_task = models.ForeignKey(
         QuestTask, on_delete=models.CASCADE
     )
 
     def __str__(self):
-        return f"{self.game} - {self.quest_task}"
+        return f"{str(self.settings.game)} - {self.quest_task}"
 
 
 # Модель для выполнения задачи игроком
 class PlayerTaskCompletion(models.Model):
     player = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        GameUser,
         on_delete=models.CASCADE,
-        related_name="task_completions",
+        related_name="completed",
     )
     game_task = models.ForeignKey(
         GameQuestTask, on_delete=models.CASCADE, related_name="task_completions"
