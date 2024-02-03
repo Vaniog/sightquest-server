@@ -97,12 +97,6 @@ class Game(models.Model):
         on_delete=models.SET_NULL,
         null=True,
     )
-    players = models.ManyToManyField(
-        settings.AUTH_USER_MODEL,
-        through="GameUser",
-        related_name="games",
-    )
-    tasks = models.ManyToManyField(QuestTask, through="GameQuestTask")
     settings = models.ForeignKey(
         GameSettings, related_name="game", on_delete=models.SET_NULL, null=True
     )
