@@ -17,7 +17,8 @@ class GameState:
 
     def process_to_json(self):
         for player in self.game_json["players"]:
-            player["coordinates"] = self.player_coordinates[player["user"]["id"]] or Coordinate(longitude=0, latitude=0)
+            player["coordinates"] = self.player_coordinates.get(player["user"]["id"], None) \
+                                    or {"latitude": 0, "longitude": 0}
         return self.game_json
 
     def add_player(self, user):
