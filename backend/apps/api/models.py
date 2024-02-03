@@ -4,6 +4,7 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.html import mark_safe
+from shortuuid.django_fields import ShortUUIDField
 
 
 def quest_directiory_path(instance, filename):
@@ -69,7 +70,11 @@ class QuestTask(models.Model):
     )
 
     def __str__(self):
-        return f"{self.quest_point.title}: {self.title}"
+        if self.quest_point:
+            return f"{self.quest_point.title}: {self.title}"
+        else:
+            return f"No Quest Point: {self.title}"
+
 
 # Модель для настроек игры
 class GameSettings(models.Model):
@@ -85,6 +90,7 @@ class GameSettings(models.Model):
 class Game(models.Model):
     host = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="owned_games", on_delete=models.SET_NULL, null=True)
     settings = models.ForeignKey(GameSettings, related_name="game", on_delete=models.SET_NULL, null=True)
+    code = ShortUUIDField(unique=True, length=8, alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
     created_at = models.DateTimeField(auto_now_add=True)
     started_at = models.DateTimeField(default=timezone.now)
     ended_at = models.DateTimeField(null=True)
@@ -97,7 +103,7 @@ class Game(models.Model):
     state = models.CharField(max_length=10, choices=STATE_CHOICES, default='LOBBY')
 
     def __str__(self):
-        return f"Game hosted by {self.host.username} created at {self.created_at}"
+        return f"Game #{self.code}"
 
 
 class GameUser(models.Model):

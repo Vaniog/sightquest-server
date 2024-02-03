@@ -3,10 +3,8 @@ from rest_framework import generics, status
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 
-from .models import GamePhoto, Game
-from .serializers import (
-    GamePhotoSerializer, GameSerializer
-)
+from .models import Game, GamePhoto
+from .serializers import GamePhotoSerializer, GameSerializer
 
 User = get_user_model()
 
@@ -36,3 +34,6 @@ class GameListCreateView(generics.ListCreateAPIView):
 class GameDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Game.objects.all()
     serializer_class = GameSerializer
+
+    lookup_field = "code"
+

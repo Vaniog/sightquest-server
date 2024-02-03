@@ -32,6 +32,11 @@
     <label for="longitude"></label><input type="text" id="longitude" placeholder="longitude"/>
     <button id="sendCoords">Send coords</button>
 </div>
+<div>
+    <label for="customData">Enter custom data:</label>
+    <input type="text" id="customData" placeholder="data"/>
+    <button id="sendCustomData" value='{"event":"Hi!"}'>Send</button>
+</div>
 
 <div id="messages"></div>
 
@@ -130,12 +135,20 @@
         )
     }
 
+    function sendCustomData() {
+        var customData = $("#customData").val();
+        socket.send(
+            customData
+        )
+    }
+
     $(document).ready(function () {
         $("#createGame").click(createGame);
         $("#connectWebSocket").click(connectWebSocket);
         $("#joinGame").click(joinGame);
         $("#authorize").click(authorize);
         $("#sendCoords").click(sendCoords);
+        $("#sendCustomData").click(sendCustomData);
     });
 </script>
 </body>
