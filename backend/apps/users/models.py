@@ -7,6 +7,8 @@ from django.contrib.auth.models import (
 from django.db import models
 from django.utils import timezone
 
+from backend.yandex_s3_storage import ClientDocsStorage
+
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, username, password=None, **extra_fields):
@@ -35,7 +37,9 @@ class CustomUserManager(BaseUserManager):
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     id = models.AutoField(primary_key=True)
     username = models.CharField(max_length=255, unique=True)
-    avatar = models.ImageField(upload_to="avatars/", null=True, blank=True)
+    avatar = models.ImageField(
+        upload_to="avatars/", null=True, blank=True, storage=ClientDocsStorage()
+    )
 
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
