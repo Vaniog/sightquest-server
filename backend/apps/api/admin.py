@@ -98,8 +98,7 @@ class GameAdmin(admin.ModelAdmin):
         'host__username', 'created_at', 'started_at', 'ended_at')  # Поля, по которым можно производить поиск
     list_filter = ('host', 'created_at', 'started_at')  # Фильтры в боковой панели
     ordering = ('-created_at',)  # Сортировка (по умолчанию в порядке убывания)
-    filter_horizontal = ('players', 'tasks')  # Добавляет виджет выбора множественных значений для players и tasks
-    inlines = [GameUserInline, GameQuestTaskInline]
+    inlines = [GameUserInline]
 
 
 @admin.register(PlayerTaskCompletion)
@@ -108,5 +107,5 @@ class PlayerTaskCompletionAdmin(admin.ModelAdmin):
     search_fields = (
         'player__username', 'game_task__game__host__username',
         'completed_at')  # Поля, по которым можно производить поиск
-    list_filter = ('player', 'game_task__game')  # Фильтры в боковой панели
+    list_filter = ('player',)  # Фильтры в боковой панели
     ordering = ('-completed_at',)  # Сортировка (по умолчанию в порядке убывания)
