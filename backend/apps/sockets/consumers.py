@@ -7,12 +7,11 @@ django.setup()
 
 import json
 
-from apps.api.models import Game
+from apps.api.models import Game, GameUser
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from django.contrib.auth import get_user_model
 from .game.gamestatemanager import GameStateManager, GameState
-from .game.serializers import GameStateSerializer
 
 User = get_user_model()
 
@@ -51,12 +50,15 @@ class GameConsumer(WebsocketConsumer):
         if event_type == "authorization":
             self.receive_authorization(text_data_json)
         if event_type == "get_game_state":
-            self.send()
+            self.send_game_state()
         if event_type == "location_update":
             self.game_state.set_player_coordinates(self.user.id, text_data_json["coordinates"])
-            self.send(text_data=GameStateSerializer(self.game_state, many=False))
+            self.send_game_state()
         else:
             self.group_resend(text_data)
+
+    def send_game_state(self):
+        self.send(text_data=json.dumps(self.game_state.process_to_json()))
 
     @login_required
     def group_resend(self, data):
@@ -75,6 +77,7 @@ class GameConsumer(WebsocketConsumer):
     def receive_authorization(self, data_json):
         self.user = User.objects.filter(id=int(data_json["token"])).first()
         if self.user is not None:
+            self.game_state.add_player(self.user)
             self.send(text_data=json.dumps({"status": f"authorization succeed as {self.user}"}))
         else:
             self.send(text_data=json.dumps({"status": f"authorization failed"}))

@@ -18,34 +18,40 @@ class CoordinatesSerializer(serializers.ModelSerializer):
         fields = ('latitude', 'longitude')
 
 
-class QuestPointSerializer(serializers.ModelSerializer):
-    location = CoordinatesSerializer()
-
-    class Meta:
-        model = QuestPoint
-        fields = ('description', 'title', 'image', 'location')
-
-
 class QuestTaskSerializer(serializers.ModelSerializer):
-    quest_point = QuestPointSerializer()
+    quest_point = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = QuestTask
         fields = ('id', 'title', 'description', 'quest_point')
 
 
-class SettingsSerializer(serializers.ModelSerializer):
+class QuestPointSerializer(serializers.ModelSerializer):
+    location = CoordinatesSerializer()
     tasks = QuestTaskSerializer(many=True)
 
     class Meta:
+        model = QuestPoint
+        fields = ('id', 'description', 'title', 'image', 'location', 'tasks')
+
+
+class SettingsSerializer(serializers.ModelSerializer):
+    # tasks = QuestTaskSerializer(many=True)
+    quest_points = serializers.SerializerMethodField()
+
+    def get_quest_points(self, obj):
+        quest_points = set([task.quest_point for task in obj.tasks.all()])
+        return QuestPointSerializer(quest_points, many=True).data
+
+    class Meta:
         model = GameSettings
-        fields = ["mode", "duration", "tasks"]
+        fields = ["mode", "duration", "tasks", "quest_points"]
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["username", "avatar"]
+        fields = ["id", "username", "avatar"]
 
 
 class GameUserSerializer(serializers.ModelSerializer):

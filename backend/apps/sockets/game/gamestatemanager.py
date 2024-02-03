@@ -1,7 +1,5 @@
-import dataclasses
-
 from apps.api.serializers import GameSerializer
-from apps.api.models import Game, Coordinate
+from apps.api.models import Game, Coordinate, GameUser
 
 
 class GameState:
@@ -9,14 +7,22 @@ class GameState:
 
     def __init__(self, game: Game):
         self.game = game
+        self.game_json = GameSerializer(game).data
+
+    def update_from_db(self):
+        self.game_json = GameSerializer(self.game).data
 
     def set_player_coordinates(self, player_id: int, coordinates: Coordinate):
         self.player_coordinates[player_id] = coordinates
 
     def process_to_json(self):
-        game_serializer = GameSerializer(self.game)
-        for player in game_serializer.players:
-            player.coordinates = 1
+        for player in self.game_json["players"]:
+            player["coordinates"] = self.player_coordinates[player["user"]["id"]] or Coordinate(longitude=0, latitude=0)
+        return self.game_json
+
+    def add_player(self, user):
+        GameUser(user=user, game=self.game).save()
+        self.update_from_db()
 
 
 class GameStateManager:
