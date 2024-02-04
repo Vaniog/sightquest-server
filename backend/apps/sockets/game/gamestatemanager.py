@@ -22,7 +22,8 @@ class GameState:
         return self.game_json
 
     def add_player(self, user):
-        GameUser(user=user, game=self.game).save()
+        if self.game.players.filter(user=user).count() == 0:
+            GameUser(game=self.game, user=user).save()
         self.update_from_db()
 
 
