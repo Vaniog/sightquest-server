@@ -6,8 +6,9 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from .models import Game, GamePhoto
-from .serializers import GamePhotoSerializer, GameSerializer
+from .models import Game, GamePhoto, Route, QuestPoint
+from .serializers import GamePhotoSerializer, GameSerializer, RouteSerializer, QuestPointSerializer, \
+    QuestTaskSerializer, QuestTask
 
 User = get_user_model()
 
@@ -29,18 +30,6 @@ class GamePhotoCreateView(generics.CreateAPIView):
             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class GameListCreateView(generics.ListCreateAPIView):
-    queryset = Game.objects.all()
-    serializer_class = GameSerializer
-
-
-class GameDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Game.objects.all()
-    serializer_class = GameSerializer
-
-    lookup_field = "code"
-
-
 class GameCreateView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
@@ -51,3 +40,33 @@ class GameCreateView(APIView):
         game.save()
 
         return Response(GameSerializer(game).data)
+
+
+class QuestTaskListCreateView(generics.ListCreateAPIView):
+    queryset = QuestTask.objects.all()
+    serializer_class = QuestTaskSerializer
+
+
+class QuestTaskDetailView(generics.RetrieveDestroyAPIView):
+    queryset = QuestTask.objects.all()
+    serializer_class = QuestTaskSerializer
+
+
+class RouteListCreateView(generics.ListCreateAPIView):
+    queryset = Route.objects.all()
+    serializer_class = RouteSerializer
+
+
+class RouteDetailView(generics.RetrieveDestroyAPIView):
+    queryset = Route.objects.all()
+    serializer_class = RouteSerializer
+
+
+class QuestPointListCreateView(generics.ListCreateAPIView):
+    queryset = QuestPoint.objects.all()
+    serializer_class = QuestPointSerializer
+
+
+class QuestPointDetailView(generics.RetrieveDestroyAPIView):
+    queryset = QuestPoint.objects.all()
+    serializer_class = QuestPointSerializer

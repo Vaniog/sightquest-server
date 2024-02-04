@@ -11,7 +11,7 @@ from .models import (
     GameSettings,
     Game,
     GameUser,
-    GameQuestTask, PlayerTaskCompletion
+    GameQuestTask, PlayerTaskCompletion, Route
 )
 
 
@@ -109,3 +109,10 @@ class PlayerTaskCompletionAdmin(admin.ModelAdmin):
         'completed_at')  # Поля, по которым можно производить поиск
     list_filter = ('player',)  # Фильтры в боковой панели
     ordering = ('-completed_at',)  # Сортировка (по умолчанию в порядке убывания)
+
+
+@admin.register(Route)
+class RouteAdmin(admin.ModelAdmin):
+    list_display = ('title', 'complexity', 'popularity')
+    search_fields = ['title', 'description']
+    filter_horizontal = ('quest_points',)

@@ -43,7 +43,6 @@ class City(models.Model):
         return self.name
 
 
-# Модель точки квеста
 class QuestPoint(models.Model):
     title = models.CharField(
         max_length=255, blank=False, null=False, default="No title"
@@ -176,3 +175,11 @@ class PlayerTaskCompletion(models.Model):
 
     def __str__(self):
         return f"{self.player} completed {self.game_task} at {self.completed_at}"
+
+
+class Route(models.Model):
+    title = models.CharField(max_length=255, null=False)
+    description = models.TextField(blank=False, null=False, default="No description")
+    complexity = models.IntegerField(default=0)
+    popularity = models.IntegerField(default=0)
+    quest_points = models.ManyToManyField(QuestPoint, related_name="routes")
