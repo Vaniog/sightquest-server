@@ -121,8 +121,8 @@ class GameConsumer(WebsocketConsumer):
     def on_receive_task_completed(self, data_json):
         try:
             task_id = int(data_json["task_id"])
-            game_task = GameQuestTask.objects.filter(settings__game=self.game_state.game, quest_task_id=task_id).first()
             photo = data_json["photo"]
+            game_task = GameQuestTask.objects.filter(settings__game=self.game_state.game, quest_task_id=task_id).first()
             PlayerTaskCompletion(
                 photo=photo,
                 game_task=game_task,
@@ -137,7 +137,25 @@ class GameConsumer(WebsocketConsumer):
     def on_receive_player_caught(self, data_json):
         try:
             secret = data_json["secret"]
+            game_user: GameUser = GameUser.objects.filter(game=self.game_state.game, secret=secret).first()
+            if game_user is None:
+                self.send_status_message("secret does not exists")
+                return
+            if game_user.role != "RUNNER":
+                self.send_status_message("player is not a runner")
+                return
 
+            players = [player for player in self.game_state.game.players.order_by("secret")]
+
+            player_index = players.index(game_user)
+            next_runner_index = (player_index + 1) % len(players)
+            game_user.role = "CATCHER"
+            game_user.regenerate_secret()
+            game_user.save()
+            players[next_runner_index].role = "RUNNER"
+            players[next_runner_index].save()
+
+            self.game_state.update_from_db()
             self.group_broadcast(data_json)
         except Exception:
             self.send_status_message("Your data bad somehow")

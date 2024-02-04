@@ -6,6 +6,8 @@ from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.utils.html import mark_safe
 from shortuuid.django_fields import ShortUUIDField
+import secrets
+import string
 
 from backend.yandex_s3_storage import ClientDocsStorage
 
@@ -131,6 +133,13 @@ def create_game_settings(sender, instance, **kwargs):
 pre_save.connect(create_game_settings, sender=Game)
 
 
+def generate_secret():
+    secret_length = 6
+    characters = string.ascii_letters + string.digits
+    new_secret = ''.join(secrets.choice(characters).upper() for _ in range(secret_length))
+    return new_secret
+
+
 class GameUser(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name="players")
@@ -139,6 +148,12 @@ class GameUser(models.Model):
         ('CATCHER', 'Catcher')
     ]
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='CATCHER')
+
+    def regenerate_secret(self):
+        self.secret = generate_secret()
+        self.save()
+
+    secret = models.CharField(max_length=10, default=generate_secret)
 
     def __str__(self):
         return f"User {str(self.user)} in Game #{str(self.game)}"

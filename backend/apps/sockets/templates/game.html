@@ -42,6 +42,14 @@
     <input type="text" id="customData" placeholder="data"/>
     <button id="sendCustomData" value='{"event":"Hi!"}'>Send</button>
 </div>
+<div>
+    <label for="catchPlayerSecret">Catch player:</label>
+    <input type="text" id="catchPlayerSecret" placeholder="secret"/>
+    <button id="catchPlayer">Catch</button>
+</div>
+<div>
+    <button id="getGameState">Get Game State</button>
+</div>
 
 <div id="messages"></div>
 
@@ -128,10 +136,28 @@
         )
     }
 
+    function catchPlayer() {
+        var catchPlayerSecret = $("#catchPlayerSecret").val();
+        socket.send(
+            JSON.stringify({
+                "event": "player_caught",
+                "secret": catchPlayerSecret
+            })
+        )
+    }
+
     function sendCustomData() {
         var customData = $("#customData").val();
         socket.send(
             customData
+        )
+    }
+
+    function getGameState() {
+        socket.send(
+            JSON.stringify({
+                "event": "get_game_state"
+            })
         )
     }
 
@@ -141,6 +167,8 @@
         $("#sendCoords").click(sendCoords);
         $("#sendCustomData").click(sendCustomData);
         $("#sendTaskCompleted").click(sendTaskCompleted);
+        $("#catchPlayer").click(catchPlayer);
+        $("#getGameState").click(getGameState);
     });
 </script>
 </body>

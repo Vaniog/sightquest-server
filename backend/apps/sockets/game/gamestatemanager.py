@@ -23,7 +23,10 @@ class GameState:
 
     def add_player(self, user):
         if self.game.players.filter(user=user).count() == 0:
-            GameUser(game=self.game, user=user).save()
+            game_user = GameUser(game=self.game, user=user)
+            if self.game.players.filter(role="RUNNER").count() == 0:
+                game_user.role = "RUNNER"
+            game_user.save()
         self.update_from_db()
 
 
