@@ -89,7 +89,7 @@ class GameConsumer(WebsocketConsumer):
         }))
 
     def broadcast(self, data):
-        self.send(text_data=data["data"])
+        self.send(text_data=json.dumps(data["data"]))
 
     @login_required
     def on_receive_location_update(self, data_json):
