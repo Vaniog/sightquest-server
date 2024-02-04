@@ -1,7 +1,10 @@
 from django.contrib.auth import get_user_model
 from rest_framework import generics, status
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import Game, GamePhoto
 from .serializers import GamePhotoSerializer, GameSerializer
@@ -37,3 +40,14 @@ class GameDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     lookup_field = "code"
 
+
+class GameCreateView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        game = Game(host=request.user)
+        print("Hi!")
+        game.save()
+
+        return Response(GameSerializer(game).data)

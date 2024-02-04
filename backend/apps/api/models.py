@@ -2,7 +2,8 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.db import models
-from django.utils import timezone
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 from django.utils.html import mark_safe
 from shortuuid.django_fields import ShortUUIDField
 
@@ -78,10 +79,12 @@ class QuestTask(models.Model):
             return f"No Quest Point: {self.title}"
 
 
-
 # Модель для настроек игры
 class GameSettings(models.Model):
-    mode = models.CharField(max_length=50)
+    MODE_CHOICES = [
+        ('BASE', 'Base'),
+    ]
+    mode = models.CharField(choices=MODE_CHOICES, max_length=50, default="BASE")
     duration = models.DurationField(default=timedelta(hours=1))
     tasks = models.ManyToManyField(QuestTask, through="GameQuestTask")
 
@@ -98,13 +101,13 @@ class Game(models.Model):
         null=True,
     )
     settings = models.ForeignKey(
-        GameSettings, related_name="game", on_delete=models.SET_NULL, null=True
+        GameSettings, related_name="game", on_delete=models.PROTECT
     )
     code = ShortUUIDField(
         unique=True, length=8, alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     )
     created_at = models.DateTimeField(auto_now_add=True)
-    started_at = models.DateTimeField(default=timezone.now)
+    started_at = models.DateTimeField(null=True)
     ended_at = models.DateTimeField(null=True)
 
     STATE_CHOICES = [
@@ -118,14 +121,25 @@ class Game(models.Model):
         return f"Game #{self.code}"
 
 
+@receiver(pre_save, sender=Game)
+def create_game_settings(sender, instance, **kwargs):
+    print("saved!")
+    if not hasattr(instance, 'settings'):
+        game_settings = GameSettings.objects.create()
+        instance.settings = game_settings
+
+
+pre_save.connect(create_game_settings, sender=Game)
+
+
 class GameUser(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name="players")
-    STATE_CHOICES = [
+    ROLE_CHOICES = [
         ('RUNNER', 'Runner'),
         ('CATCHER', 'Catcher')
     ]
-    role = models.CharField(max_length=10, choices=STATE_CHOICES, default='CATCHER')
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='CATCHER')
 
 
 # Модель фото лобби
