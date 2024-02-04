@@ -7,11 +7,12 @@ django.setup()
 
 import json
 
-from apps.api.models import Game, GameUser
+from apps.api.models import Game, GameUser, GameQuestTask
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from django.contrib.auth import get_user_model
 from .game.gamestatemanager import GameStateManager, GameState
+from apps.api.models import PlayerTaskCompletion
 
 User = get_user_model()
 
@@ -21,6 +22,7 @@ class GameConsumer(WebsocketConsumer):
     game_group_name: str
     game_state: GameState
     user: User = None
+    game_user: GameUser = None
 
     @staticmethod
     def login_required(func):
@@ -85,6 +87,7 @@ class GameConsumer(WebsocketConsumer):
         self.user = User.objects.filter(id=int(data_json["token"])).first()
         if self.user is not None:
             self.game_state.add_player(self.user)
+            self.game_user = GameUser.objects.filter(game=self.game_state.game, user=self.user).first()
             self.send(text_data=json.dumps({"status": f"authorization succeed as {self.user}"}))
         else:
             self.send(text_data=json.dumps({"status": f"authorization failed"}))
@@ -101,5 +104,16 @@ class GameConsumer(WebsocketConsumer):
         )
 
     def on_receive_task_completed(self, data_json):
-        task_id = int(data_json["id"])
-        photo = "string"
+        try:
+            task_id = int(data_json["task_id"])
+            game_task = GameQuestTask.objects.filter(settings__game=self.game_state.game, quest_task_id=task_id).first()
+            photo = data_json["photo"]
+            PlayerTaskCompletion(
+                photo=photo,
+                game_task=game_task,
+                player=self.game_user
+            ).save()
+            self.game_state.update_from_db()
+            self.send_game_state()
+        except Exception:
+            self.send({"status": "Your data bad somehow"})

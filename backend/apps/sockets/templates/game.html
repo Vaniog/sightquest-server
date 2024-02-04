@@ -31,6 +31,13 @@
     <button id="sendCoords">Send coords</button>
 </div>
 <div>
+    <label for="taskPhoto">Photo:</label>
+    <input type="text" id="taskPhoto" placeholder="photo"/>
+    <label for="taskId">ID:</label>
+    <input type="text" id="taskId" placeholder="task id"/>
+    <button id="sendTaskCompleted">Send task completed</button>
+</div>
+<div>
     <label for="customData">Enter custom data:</label>
     <input type="text" id="customData" placeholder="data"/>
     <button id="sendCustomData" value='{"event":"Hi!"}'>Send</button>
@@ -109,6 +116,18 @@
         )
     }
 
+    function sendTaskCompleted() {
+        var task_id = $("#taskId").val();
+        var photo = $("#taskPhoto").val();
+        socket.send(
+            JSON.stringify({
+                "event": "task_completed",
+                "task_id": task_id,
+                "photo": photo
+            })
+        )
+    }
+
     function sendCustomData() {
         var customData = $("#customData").val();
         socket.send(
@@ -121,6 +140,7 @@
         $("#authorize").click(authorize);
         $("#sendCoords").click(sendCoords);
         $("#sendCustomData").click(sendCustomData);
+        $("#sendTaskCompleted").click(sendTaskCompleted);
     });
 </script>
 </body>
