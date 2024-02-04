@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='gamephoto',
             name='image',
-            field=models.ImageField(storage=backend.yandex_s3_storage.ClientDocsStorage(), upload_to=apps.api.models.lobby_image_file_path),
+            field=models.ImageField(storage=backend.yandex_s3_storage.ClientDocsStorage(), upload_to=apps.api.models.game_image_file_path),
         ),
         migrations.AlterField(
             model_name='questpoint',

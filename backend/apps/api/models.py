@@ -175,7 +175,7 @@ class PlayerTaskCompletion(models.Model):
         GameQuestTask, on_delete=models.CASCADE, related_name="task_completions"
     )
     completed_at = models.DateTimeField()
-    game_photo = models.ForeignKey(GamePhoto, on_delete=models.PROTECT)
+    game_photo = models.ForeignKey(GamePhoto, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return f"{self.player} completed {self.game_task} at {self.completed_at}"

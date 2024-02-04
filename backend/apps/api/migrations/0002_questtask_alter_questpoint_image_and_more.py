@@ -54,7 +54,7 @@ class Migration(migrations.Migration):
             name='LobbyPhoto',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('image', models.ImageField(upload_to=apps.api.models.lobby_image_file_path)),
+                ('image', models.ImageField(upload_to=apps.api.models.game_image_file_path)),
                 ('upload_time', models.DateTimeField(auto_now_add=True)),
                 ('lobby', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='photos', to='api.playerlobby')),
             ],
