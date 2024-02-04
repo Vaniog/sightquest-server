@@ -26,7 +26,7 @@ class GameConsumer(WebsocketConsumer):
     def login_required(func):
         def wrapper(self, *args, **kwargs):
             if self.user is None:
-                self.send("You aren't authorize")
+                self.send(text_data=json.dumps({"status": "You didnt complete authorization"}))
                 self.close()
                 return
             func(self, *args, **kwargs)
@@ -44,16 +44,19 @@ class GameConsumer(WebsocketConsumer):
         )
         self.accept()
 
+        self.send(text_data=json.dumps({"status": "connection succeed"}))
+
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
         event_type = text_data_json["event"]
         if event_type == "authorization":
-            self.receive_authorization(text_data_json)
-        if event_type == "get_game_state":
-            self.send_game_state()
-        if event_type == "location_update":
-            self.game_state.set_player_coordinates(self.user.id, text_data_json["coordinates"])
-            self.send_game_state()
+            self.on_receive_authorization(text_data_json)
+        elif event_type == "get_game_state":
+            self.on_receive_send_game_state(text_data_json)
+        elif event_type == "location_update":
+            self.on_receive_location_update(text_data_json)
+        elif event_type == "task_completed":
+            self.on_receive_task_completed(text_data_json)
         else:
             self.group_resend(text_data)
 
@@ -66,7 +69,7 @@ class GameConsumer(WebsocketConsumer):
             self.game_group_name, {
                 "type": "resend",
                 "sender_id": self.user.id,
-                "data": self.game_group_name
+                "data": data
             }
         )
 
@@ -74,7 +77,11 @@ class GameConsumer(WebsocketConsumer):
         print(data["data"])
         self.send(text_data=data["data"])
 
-    def receive_authorization(self, data_json):
+    def on_receive_location_update(self, data_json):
+        self.game_state.set_player_coordinates(self.user.id, data_json["coordinates"])
+        self.send_game_state()
+
+    def on_receive_authorization(self, data_json):
         self.user = User.objects.filter(id=int(data_json["token"])).first()
         if self.user is not None:
             self.game_state.add_player(self.user)
@@ -83,9 +90,16 @@ class GameConsumer(WebsocketConsumer):
             self.send(text_data=json.dumps({"status": f"authorization failed"}))
             self.close()
 
+    def on_receive_send_game_state(self, data_json):
+        self.send_game_state()
+
     def disconnect(self, close_code):
         # Leave room group
         async_to_sync(self.channel_layer.group_discard)(
             self.game_group_name,
             self.channel_name
         )
+
+    def on_receive_task_completed(self, data_json):
+        task_id = int(data_json["id"])
+        photo = "string"

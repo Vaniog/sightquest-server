@@ -15,15 +15,13 @@
 </head>
 <body>
 <h1>Test Game WebSocket</h1>
-<button id="createGame">Create Game</button>
-<button id="connectWebSocket" disabled>Connect to WebSocket</button>
 <div>
-    <label for="gameId">Enter Game ID:</label>
+    <label for="gameId">Connect to Game WS</label>
     <input type="text" id="gameId" placeholder=" ID"/>
     <button id="joinGame">Join Game</button>
 </div>
 <div>
-    <label for="userId">Enter User ID:</label>
+    <label for="userId">User token</label>
     <input type="text" id="userId" placeholder=" ID"/>
     <button id="authorize">Authorize</button>
 </div>
@@ -42,28 +40,6 @@
 
 <script>
     var currentGameId = 0;
-
-    function createGame() {
-        $.ajax({
-            url: "/api/games/",
-            method: "POST",
-            contentType: "application/json",
-            data: JSON.stringify({
-                players: [],
-                tasks: [1],
-                settings: 1
-            }),
-            success: function (data) {
-                console.log("Game created:", data);
-                currentGameId = data.id; // Сохранение ID лобби
-                $("#connectWebSocket").prop("disabled", false);
-            },
-            error: function (error) {
-                console.error("Error creating game:", error);
-            },
-        });
-    }
-
     var socket = null
 
     function connectWebSocket() {
@@ -92,8 +68,6 @@
         socket.onerror = function (error) {
             console.error("WebSocket Error:", error);
         };
-
-        console.log("done")
     }
 
     function joinGame() {
@@ -143,8 +117,6 @@
     }
 
     $(document).ready(function () {
-        $("#createGame").click(createGame);
-        $("#connectWebSocket").click(connectWebSocket);
         $("#joinGame").click(joinGame);
         $("#authorize").click(authorize);
         $("#sendCoords").click(sendCoords);

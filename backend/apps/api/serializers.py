@@ -2,7 +2,8 @@ import json
 
 from rest_framework import serializers
 
-from .models import Game, GamePhoto, GameSettings, QuestTask, QuestPoint, Coordinate, GameUser, Route
+from .models import Game, GamePhoto, GameSettings, QuestTask, QuestPoint, Coordinate, GameUser, Route, \
+    PlayerTaskCompletion
 from django.contrib.auth import get_user_model
 from rest_framework.response import Response
 from rest_framework.validators import ValidationError
@@ -42,9 +43,24 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ["id", "username", "avatar"]
 
 
+class PlayerTaskCompletionSerializer(serializers.ModelSerializer):
+    photo = serializers.SerializerMethodField()
+    task_id = serializers.SerializerMethodField()
+
+    def get_photo(self, obj):
+        return obj.game_photo.image.url
+
+    def get_task_id(self, obj):
+        return obj.game_task.quest_task.id
+
+    class Meta:
+        model = PlayerTaskCompletion
+        fields = ["completed_at", "photo", "task_id"]
+
+
 class GameUserSerializer(serializers.ModelSerializer):
     user = UserSerializer()
-    completed = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    completed = PlayerTaskCompletionSerializer(many=True, read_only=True)
 
     class Meta:
         model = GameUser

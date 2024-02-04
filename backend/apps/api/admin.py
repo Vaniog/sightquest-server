@@ -88,6 +88,7 @@ class GameSettingsAdmin(admin.ModelAdmin):
     list_display = ('mode', 'duration')  # Поля, которые будут отображаться в списке объектов
     search_fields = ('mode',)  # Поля, по которым можно производить поиск
     ordering = ('mode',)  # Сортировка
+    inlines = [GameQuestTaskInline]
 
 
 @admin.register(Game)

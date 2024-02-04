@@ -14,8 +14,8 @@ def quest_directiory_path(instance, filename):
     return "quest_points/{0}".format(filename)
 
 
-def lobby_image_file_path(instance, filename):
-    return "lobby_photos/{0}/{1}".format(instance.lobby.id, filename)
+def game_image_file_path(instance, filename):
+    return "game_photos/{0}/{1}".format(instance.game.code, filename)
 
 
 # Содель координат
@@ -140,12 +140,15 @@ class GameUser(models.Model):
     ]
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='CATCHER')
 
+    def __str__(self):
+        return f"User {str(self.user)} in Game #{str(self.game)}"
+
 
 # Модель фото лобби
 class GamePhoto(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name="photos")
     image = models.ImageField(
-        upload_to=lobby_image_file_path, storage=ClientDocsStorage()
+        upload_to=game_image_file_path, storage=ClientDocsStorage()
     )
     upload_time = models.DateTimeField(auto_now_add=True)
 
@@ -172,6 +175,7 @@ class PlayerTaskCompletion(models.Model):
         GameQuestTask, on_delete=models.CASCADE, related_name="task_completions"
     )
     completed_at = models.DateTimeField()
+    game_photo = models.ForeignKey(GamePhoto, on_delete=models.PROTECT)
 
     def __str__(self):
         return f"{self.player} completed {self.game_task} at {self.completed_at}"
