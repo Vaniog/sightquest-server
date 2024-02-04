@@ -122,7 +122,7 @@ class GameConsumer(WebsocketConsumer):
             self.game_state.update_from_db()
             self.send_game_state()
         except Exception:
-            self.send({"status": "Your data bad somehow"})
+            self.send(text_data=json.dumps({"status": "Your data bad somehow"}))
 
     def on_receive_player_caught(self, data_json):
         try:
@@ -130,4 +130,4 @@ class GameConsumer(WebsocketConsumer):
 
 
         except Exception:
-            self.send({"status": "Your data bad somehow"})
+            self.send(text_data=json.dumps({"status": "Your data bad somehow"}))
