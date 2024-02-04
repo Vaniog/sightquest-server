@@ -59,11 +59,18 @@ class GameConsumer(WebsocketConsumer):
             self.on_receive_location_update(text_data_json)
         elif event_type == "task_completed":
             self.on_receive_task_completed(text_data_json)
+        elif event_type == "player_caught":
+            self.on_receive_player_caught(text_data_json)
         else:
             self.group_resend(text_data)
 
     def send_game_state(self):
-        self.send(text_data=json.dumps(self.game_state.process_to_json()))
+        self.send(text_data=json.dumps(
+            {
+                "event": "gamestate_update",
+                "state": self.game_state.process_to_json()
+            }
+        ))
 
     @login_required
     def group_resend(self, data):
@@ -76,7 +83,6 @@ class GameConsumer(WebsocketConsumer):
         )
 
     def resend(self, data):
-        print(data["data"])
         self.send(text_data=data["data"])
 
     def on_receive_location_update(self, data_json):
@@ -115,5 +121,13 @@ class GameConsumer(WebsocketConsumer):
             ).save()
             self.game_state.update_from_db()
             self.send_game_state()
+        except Exception:
+            self.send({"status": "Your data bad somehow"})
+
+    def on_receive_player_caught(self, data_json):
+        try:
+            secret = data_json["secret"]
+
+
         except Exception:
             self.send({"status": "Your data bad somehow"})
