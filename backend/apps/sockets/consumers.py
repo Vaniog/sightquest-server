@@ -62,7 +62,7 @@ class GameConsumer(WebsocketConsumer):
         elif event_type == "player_caught":
             self.on_receive_player_caught(text_data_json)
         else:
-            self.group_resend(text_data)
+            self.group_broadcast(text_data)
 
     def send_game_state(self):
         self.send(text_data=json.dumps(
@@ -73,10 +73,10 @@ class GameConsumer(WebsocketConsumer):
         ))
 
     @login_required
-    def group_resend(self, data):
+    def group_broadcast(self, data):
         async_to_sync(self.channel_layer.group_send)(
             self.game_group_name, {
-                "type": "resend",
+                "type": "broadcast",
                 "sender_id": self.user.id,
                 "data": data
             }
@@ -88,13 +88,13 @@ class GameConsumer(WebsocketConsumer):
             "message": message
         }))
 
-    def resend(self, data):
+    def broadcast(self, data):
         self.send(text_data=data["data"])
 
     @login_required
     def on_receive_location_update(self, data_json):
         self.game_state.set_player_coordinates(self.user.id, data_json["coordinates"])
-        self.send_game_state()
+        self.group_broadcast(data_json)
 
     def on_receive_authorization(self, data_json):
         self.user = User.objects.filter(id=int(data_json["token"])).first()
@@ -129,7 +129,7 @@ class GameConsumer(WebsocketConsumer):
                 player=self.game_user
             ).save()
             self.game_state.update_from_db()
-            self.send_game_state()
+            self.group_broadcast(data_json)
         except Exception:
             self.send_status_message("Your data bad somehow")
 
@@ -138,6 +138,6 @@ class GameConsumer(WebsocketConsumer):
         try:
             secret = data_json["secret"]
 
-
+            self.group_broadcast(data_json)
         except Exception:
             self.send_status_message("Your data bad somehow")
