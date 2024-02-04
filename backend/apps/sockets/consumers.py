@@ -28,7 +28,7 @@ class GameConsumer(WebsocketConsumer):
     def login_required(func):
         def wrapper(self, *args, **kwargs):
             if self.user is None:
-                self.send(text_data=json.dumps({"status": "You didnt complete authorization"}))
+                self.send_status_message("You didnt complete authorization")
                 self.close()
                 return
             func(self, *args, **kwargs)
@@ -46,7 +46,7 @@ class GameConsumer(WebsocketConsumer):
         )
         self.accept()
 
-        self.send(text_data=json.dumps({"status": "connection succeed"}))
+        self.send_status_message("connection succeed")
 
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
@@ -82,9 +82,16 @@ class GameConsumer(WebsocketConsumer):
             }
         )
 
+    def send_status_message(self, message):
+        self.send(json.dumps({
+            "event": "status",
+            "message": message
+        }))
+
     def resend(self, data):
         self.send(text_data=data["data"])
 
+    @login_required
     def on_receive_location_update(self, data_json):
         self.game_state.set_player_coordinates(self.user.id, data_json["coordinates"])
         self.send_game_state()
@@ -94,11 +101,12 @@ class GameConsumer(WebsocketConsumer):
         if self.user is not None:
             self.game_state.add_player(self.user)
             self.game_user = GameUser.objects.filter(game=self.game_state.game, user=self.user).first()
-            self.send(text_data=json.dumps({"status": f"authorization succeed as {self.user}"}))
+            self.send_status_message(f"authorization succeed as {self.user}")
         else:
-            self.send(text_data=json.dumps({"status": f"authorization failed"}))
+            self.send_status_message("authorization failed")
             self.close()
 
+    @login_required
     def on_receive_send_game_state(self, data_json):
         self.send_game_state()
 
@@ -109,6 +117,7 @@ class GameConsumer(WebsocketConsumer):
             self.channel_name
         )
 
+    @login_required
     def on_receive_task_completed(self, data_json):
         try:
             task_id = int(data_json["task_id"])
@@ -122,12 +131,13 @@ class GameConsumer(WebsocketConsumer):
             self.game_state.update_from_db()
             self.send_game_state()
         except Exception:
-            self.send(text_data=json.dumps({"status": "Your data bad somehow"}))
+            self.send_status_message("Your data bad somehow")
 
+    @login_required
     def on_receive_player_caught(self, data_json):
         try:
             secret = data_json["secret"]
 
 
         except Exception:
-            self.send(text_data=json.dumps({"status": "Your data bad somehow"}))
+            self.send_status_message("Your data bad somehow")
