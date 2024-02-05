@@ -88,9 +88,13 @@ class UserSerializer(serializers.ModelSerializer):
 
 class PlayerTaskCompletionSerializer(serializers.ModelSerializer):
     task_id = serializers.SerializerMethodField()
+    photo = serializers.SerializerMethodField()
 
     def get_task_id(self, obj):
         return obj.game_task.quest_task.id
+
+    def get_photo(self, obj):
+        return obj.photo.image.url
 
     class Meta:
         model = PlayerTaskCompletion

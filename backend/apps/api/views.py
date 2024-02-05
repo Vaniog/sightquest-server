@@ -42,7 +42,6 @@ class GameCreateView(APIView):
 
     def post(self, request):
         game = Game(host=request.user)
-        print("Hi!")
         game.save()
 
         return Response(GameSerializer(game).data)

@@ -31,8 +31,8 @@
     <button id="sendCoords">Send coords</button>
 </div>
 <div>
-    <label for="taskPhoto">Photo:</label>
-    <input type="text" id="taskPhoto" placeholder="photo"/>
+    <label for="taskPhotoId">Photo:</label>
+    <input type="text" id="taskPhotoId" placeholder="photo_id"/>
     <label for="taskId">ID:</label>
     <input type="text" id="taskId" placeholder="task id"/>
     <button id="sendTaskCompleted">Send task completed</button>
@@ -132,12 +132,12 @@
 
     function sendTaskCompleted() {
         var task_id = $("#taskId").val();
-        var photo = $("#taskPhoto").val();
+        var photo_id = $("#taskPhotoId").val();
         socket.send(
             JSON.stringify({
                 "event": "task_completed",
                 "task_id": task_id,
-                "photo": photo
+                "photo_id": photo_id
             })
         )
     }

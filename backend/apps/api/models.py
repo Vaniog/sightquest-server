@@ -133,8 +133,8 @@ def create_game_settings(sender, instance, **kwargs):
 pre_save.connect(create_game_settings, sender=Game)
 
 
-def generate_secret():
-    secret_length = 6
+def generate_secret(length=6):
+    secret_length = length
     characters = string.ascii_letters + string.digits
     new_secret = ''.join(secrets.choice(characters).upper() for _ in range(secret_length))
     return new_secret
@@ -154,6 +154,7 @@ class GameUser(models.Model):
         self.save()
 
     secret = models.CharField(max_length=10, default=generate_secret)
+    order_key = models.CharField(max_length=10, default=generate_secret)
 
     def __str__(self):
         return f"User {str(self.user)} in Game #{str(self.game)}"
@@ -190,7 +191,7 @@ class PlayerTaskCompletion(models.Model):
         GameQuestTask, on_delete=models.CASCADE, related_name="task_completions"
     )
     completed_at = models.DateTimeField(auto_now_add=True)
-    photo = models.CharField(max_length=511, null=False)
+    photo = models.ForeignKey(GamePhoto, on_delete=models.CASCADE, related_name="task_completion")
 
     def __str__(self):
         return f"{self.player} completed {self.game_task} at {self.completed_at}"

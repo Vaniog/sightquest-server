@@ -7,7 +7,7 @@ django.setup()
 
 import json
 
-from apps.api.models import Game, GameUser, GameQuestTask, GameSettings, QuestTask
+from apps.api.models import Game, GameUser, GameQuestTask, GameSettings, GamePhoto
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from django.contrib.auth import get_user_model
@@ -124,10 +124,12 @@ class GameConsumer(WebsocketConsumer):
     def on_receive_task_completed(self, data_json):
         try:
             task_id = int(data_json["task_id"])
-            photo = data_json["photo"]
+            photo_id = data_json["photo_id"]
+            game_photo: GamePhoto = GamePhoto.objects.filter(id=photo_id).first()
+
             game_task = GameQuestTask.objects.filter(settings__game=self.game_state.game, quest_task_id=task_id).first()
             PlayerTaskCompletion(
-                photo=photo,
+                photo=game_photo,
                 game_task=game_task,
                 player=self.game_user
             ).save()
@@ -148,7 +150,7 @@ class GameConsumer(WebsocketConsumer):
                 self.send_status_message("player is not a runner")
                 return
 
-            players = [player for player in self.game_state.game.players.order_by("secret")]
+            players = [player for player in self.game_state.game.players.order_by("order_key")]
 
             player_index = players.index(game_user)
             next_runner_index = (player_index + 1) % len(players)
