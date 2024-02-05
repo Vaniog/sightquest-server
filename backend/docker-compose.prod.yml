@@ -1,0 +1,45 @@
+version: "2"
+
+services:
+  backend:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: ./docker/backend/Dockerfile
+    command:
+      - ./docker/backend/run.sh
+    container_name: backend
+    env_file:
+      - .env
+    volumes:
+      - ./media:/backend/media:consistent
+      - ./static:/backend/static:consistent
+    ports:
+      - "8000:8000"
+    depends_on:
+      - broker
+  broker:
+    container_name: broker
+    image: redis:alpine3.16
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis/data:/root/redis
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+  worker:
+    container_name: worker
+    restart: always
+    build:
+      context: .
+      dockerfile: ./docker/backend/Dockerfile
+    command: celery -A backend worker -l info
+    volumes:
+      - .:/backend
+    env_file:
+      - .env
+    depends_on:
+      - broker
+      - backend
