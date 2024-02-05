@@ -1,4 +1,5 @@
 import os
+import secrets
 
 import django
 
@@ -14,6 +15,7 @@ from django.contrib.auth import get_user_model
 from .game.gamestatemanager import GameStateManager, GameState
 from apps.api.models import PlayerTaskCompletion
 from datetime import timedelta, datetime
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -64,6 +66,8 @@ class GameConsumer(WebsocketConsumer):
             self.on_receive_player_caught(text_data_json)
         elif event_type == "settings_update":
             self.on_receive_settings_update(text_data_json)
+        elif event_type == "start_game":
+            self.on_receive_start_game(text_data_json)
         else:
             self.group_broadcast(text_data_json)
 
@@ -183,5 +187,20 @@ class GameConsumer(WebsocketConsumer):
                 game_quest_task.save()
 
         game_settings.save()
+        self.game_state.update_from_db()
+        self.group_broadcast(data_json)
+
+    @login_required
+    def on_receive_start_game(self, data_json):
+        self.game_state.game.started_at = timezone.now()
+        players = [player for player in self.game_state.game.players.all()]
+        for player in players:
+            player.role = "CATCHER"
+            player.save()
+        runner = secrets.choice(players)
+        runner.role = "RUNNER"
+        runner.save()
+
+        self.game_state.game.state = "PLAYING"
         self.game_state.update_from_db()
         self.group_broadcast(data_json)
