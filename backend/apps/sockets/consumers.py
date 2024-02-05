@@ -7,12 +7,13 @@ django.setup()
 
 import json
 
-from apps.api.models import Game, GameUser, GameQuestTask
+from apps.api.models import Game, GameUser, GameQuestTask, GameSettings, QuestTask
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from django.contrib.auth import get_user_model
 from .game.gamestatemanager import GameStateManager, GameState
 from apps.api.models import PlayerTaskCompletion
+from datetime import timedelta, datetime
 
 User = get_user_model()
 
@@ -61,6 +62,8 @@ class GameConsumer(WebsocketConsumer):
             self.on_receive_task_completed(text_data_json)
         elif event_type == "player_caught":
             self.on_receive_player_caught(text_data_json)
+        elif event_type == "settings_update":
+            self.on_receive_settings_update(text_data_json)
         else:
             self.group_broadcast(text_data_json)
 
@@ -159,3 +162,24 @@ class GameConsumer(WebsocketConsumer):
             self.group_broadcast(data_json)
         except Exception:
             self.send_status_message("Your data bad somehow")
+
+    @login_required
+    def on_receive_settings_update(self, data_json):
+        settings = data_json["settings"]
+        quest_points_data = settings["quest_points"]
+        duration = settings["duration"]
+        game_settings: GameSettings = self.game_state.game.settings
+
+        t = datetime.strptime(duration, "%H:%M:%S")
+        game_settings.duration = timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
+
+        game_settings.tasks.clear()
+        for quest_point_data in quest_points_data:
+            for quest_task_data in quest_point_data["tasks"]:
+                quest_task_id = quest_task_data["id"]
+                game_quest_task = GameQuestTask(settings=game_settings, quest_task_id=quest_task_id)
+                game_quest_task.save()
+
+        game_settings.save()
+        self.game_state.update_from_db()
+        self.group_broadcast(data_json)

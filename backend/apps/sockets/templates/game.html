@@ -38,17 +38,23 @@
     <button id="sendTaskCompleted">Send task completed</button>
 </div>
 <div>
-    <label for="customData">Enter custom data:</label>
-    <input type="text" id="customData" placeholder="data"/>
-    <button id="sendCustomData" value='{"event":"Hi!"}'>Send</button>
-</div>
-<div>
     <label for="catchPlayerSecret">Catch player:</label>
     <input type="text" id="catchPlayerSecret" placeholder="secret"/>
     <button id="catchPlayer">Catch</button>
 </div>
 <div>
+    Duration: <input type="text" id="duration" placeholder="01:00:00"/>
+    Quest tasks: <input type="text" id="questTasks" placeholder="1 2 3"/>
+    <button id="updateSettings">Update settings</button>
+</div>
+<div>
     <button id="getGameState">Get Game State</button>
+</div>
+
+<div>
+    <label for="customData">Enter custom data:</label>
+    <input type="text" id="customData" placeholder="data"/>
+    <button id="sendCustomData" value='{"event":"Hi!"}'>Send</button>
 </div>
 
 <div id="messages"></div>
@@ -146,6 +152,27 @@
         )
     }
 
+    function updateSettings() {
+        var duration = $("#duration").val();
+        var quest_task_ids = $("#questTasks").val().split(" ");
+        if ($("#questTasks").val().length === 0) {
+            quest_task_ids = []
+        }
+        var quest_point = {"tasks": []}
+        quest_task_ids.forEach((quest_task_id) => {
+            quest_point["tasks"].push({"id": quest_task_id})
+        })
+        socket.send(
+            JSON.stringify({
+                "event": "settings_update",
+                "settings": {
+                    "duration": duration,
+                    "quest_points": [quest_point]
+                }
+            })
+        )
+    }
+
     function sendCustomData() {
         var customData = $("#customData").val();
         socket.send(
@@ -169,6 +196,7 @@
         $("#sendTaskCompleted").click(sendTaskCompleted);
         $("#catchPlayer").click(catchPlayer);
         $("#getGameState").click(getGameState);
+        $("#updateSettings").click(updateSettings);
     });
 </script>
 </body>
