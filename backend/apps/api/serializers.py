@@ -1,27 +1,70 @@
 import json
 
-from rest_framework import serializers
-
-from .models import Game, GamePhoto, GameSettings, QuestTask, QuestPoint, Coordinate, GameUser, Route, \
-    PlayerTaskCompletion
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
+from rest_framework import serializers
 from rest_framework.response import Response
 from rest_framework.validators import ValidationError
-from django.shortcuts import get_object_or_404
+
+from .models import (
+    Coordinate,
+    Game,
+    GamePhoto,
+    GameSettings,
+    GameUser,
+    PlayerTaskCompletion,
+    QuestPoint,
+    QuestTask,
+    Route,
+)
 
 User = get_user_model()
 
 
 class GamePhotoSerializer(serializers.ModelSerializer):
+    game_code = serializers.CharField(write_only=True, required=False)
+
     class Meta:
         model = GamePhoto
-        fields = ["game", "image", "upload_time"]
+        fields = ["id", "game_code", "image", "upload_time"]
+
+    def get_game_code(self, obj):
+        if obj.game:
+            return obj.game.code
+        return None
+
+    def create(self, validated_data):
+        game_code = validated_data.pop("game_code", None)
+
+        if game_code:
+            try:
+                game = Game.objects.get(code=game_code)
+            except Game.DoesNotExist:
+                raise ValidationError(
+                    {
+                        "error": f"Game with code {game_code} does not exist",
+                        "game_code": f"{game_code}",
+                    }
+                )
+        else:
+            raise ValidationError({"error": "Game code is required."})
+
+        image = validated_data.pop("image", None)
+
+        game_photo = GamePhoto(**validated_data)
+        game_photo.game = game
+
+        if image:
+            game_photo.image = image
+
+        game_photo.save()
+        return game_photo
 
 
 class CoordinatesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Coordinate
-        fields = ('latitude', 'longitude')
+        fields = ("latitude", "longitude")
 
 
 class SettingsSerializer(serializers.ModelSerializer):
@@ -87,14 +130,14 @@ class GameSerializer(serializers.ModelSerializer):
         return None
 
     def update(self, instance, validated_data):
-        if 'players' in validated_data:
-            player_usernames = validated_data.pop('players')
+        if "players" in validated_data:
+            player_usernames = validated_data.pop("players")
             players = User.objects.filter(username__in=player_usernames)
             instance.players.set(players)
-        if 'tasks' in validated_data:
-            instance.tasks.set(validated_data.get('tasks', instance.tasks.all()))
-        if 'settings' in validated_data:
-            instance.settings = validated_data.get('settings', instance.settings)
+        if "tasks" in validated_data:
+            instance.tasks.set(validated_data.get("tasks", instance.tasks.all()))
+        if "settings" in validated_data:
+            instance.settings = validated_data.get("settings", instance.settings)
 
         instance.save()
         return instance
@@ -105,10 +148,10 @@ class QuestTaskSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = QuestTask
-        fields = ('id', 'title', 'description', 'quest_point')
+        fields = ("id", "title", "description", "quest_point")
 
     def create(self, validated_data):
-        quest_point = validated_data.pop('quest_point')
+        quest_point = validated_data.pop("quest_point")
         quest_task = QuestTask.objects.create(quest_point=quest_point, **validated_data)
         return quest_task
 
@@ -119,15 +162,15 @@ class QuestPointSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = QuestPoint
-        fields = ('id', 'title', 'description', 'location', 'image', 'city', 'tasks')
+        fields = ("id", "title", "description", "location", "image", "city", "tasks")
 
     def to_representation(self, instance):
         representation = super(QuestPointSerializer, self).to_representation(instance)
-        representation['image'] = instance.image.url if instance.image else None
+        representation["image"] = instance.image.url if instance.image else None
         return representation
 
     def create(self, validated_data):
-        location_data = validated_data.pop('location')
+        location_data = validated_data.pop("location")
         location_serializer = CoordinatesSerializer(data=location_data)
         location_serializer.is_valid(raise_exception=True)
         location = location_serializer.save()
@@ -142,4 +185,4 @@ class RouteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Route
-        fields = ['id', 'title', 'complexity', 'popularity', 'quest_points']
+        fields = ["id", "title", "complexity", "popularity", "quest_points"]

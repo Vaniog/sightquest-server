@@ -1,14 +1,20 @@
 from django.contrib.auth import get_user_model
 from rest_framework import generics, status
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from .models import Game, GamePhoto, Route, QuestPoint
-from .serializers import GamePhotoSerializer, GameSerializer, RouteSerializer, QuestPointSerializer, \
-    QuestTaskSerializer, QuestTask
+from .models import Game, GamePhoto, QuestPoint, Route
+from .serializers import (
+    GamePhotoSerializer,
+    GameSerializer,
+    QuestPointSerializer,
+    QuestTask,
+    QuestTaskSerializer,
+    RouteSerializer,
+)
 
 User = get_user_model()
 
