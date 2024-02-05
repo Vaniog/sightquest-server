@@ -41,6 +41,8 @@ class GameConsumer(WebsocketConsumer):
     def connect(self):
         self.game_code = str(self.scope["url_route"]["kwargs"]["game_id"])
         self.game_state = GameStateManager.get_game_state(self.game_code)
+        if self.game_state.game is None:
+            self.close()
 
         self.game_group_name = "game_%s" % self.game_code
 
