@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
+from datetime import timedelta
 
 load_dotenv()
 
@@ -192,6 +193,7 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
     "TOKEN_OBTAIN_SERIALIZER": "apps.users.serializers.CustomTokenObtainPairSerializer",
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=7),
 }
 
 # CELERY
@@ -208,10 +210,8 @@ CACHES = {
 
 CELERY_CACHE_BACKEND = "default"
 
-
 # Сюда добавлять новые приложения, которые используют shared таски
 CELERY_IMPORTS = ()
-
 
 # Yandex Cloud settings
 YANDEX_BUCKET_NAME = os.getenv("YANDEX_BUCKET_NAME")
@@ -221,7 +221,6 @@ AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 AWS_S3_ENDPOINT_URL = "https://storage.yandexcloud.net"
 AWS_S3_REGION_NAME = "storage"
-
 
 # Logging
 LOGGING = {
