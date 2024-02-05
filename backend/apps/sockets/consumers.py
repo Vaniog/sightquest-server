@@ -62,7 +62,7 @@ class GameConsumer(WebsocketConsumer):
         elif event_type == "player_caught":
             self.on_receive_player_caught(text_data_json)
         else:
-            self.group_broadcast(text_data)
+            self.group_broadcast(text_data_json)
 
     def send_game_state(self):
         self.send(text_data=json.dumps(
