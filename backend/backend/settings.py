@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     "apps.users",
     "apps.api",
     "apps.sockets",
+    "apps.mailer",
 ]
 
 # ASGI
@@ -211,7 +212,7 @@ CACHES = {
 CELERY_CACHE_BACKEND = "default"
 
 # Сюда добавлять новые приложения, которые используют shared таски
-CELERY_IMPORTS = ()
+CELERY_IMPORTS = ('apps.mailer.tasks',)
 
 # Yandex Cloud settings
 YANDEX_BUCKET_NAME = os.getenv("YANDEX_BUCKET_NAME")
@@ -345,3 +346,14 @@ JAZZMIN_SETTINGS = {
     # Add a language dropdown into the admin
     "language_chooser": False,
 }
+
+# Email
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' \
+    if os.getenv('EMAIL') == 'True' else 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')

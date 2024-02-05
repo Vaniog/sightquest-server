@@ -35,5 +35,6 @@ urlpatterns = [
     # Custom
     path("admin/", admin.site.urls),
     path("api/", include("apps.api.urls")),
+    path("api/", include("apps.mailer.urls")),
     path("", game_socket),
 ]
