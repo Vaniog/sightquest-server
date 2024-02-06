@@ -1,3 +1,4 @@
+from django.template.loader import render_to_string
 from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
 from .tasks import send_mailing
@@ -32,8 +33,7 @@ class SubscriberListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         subscriber = serializer.save()
         mail_data = {
-            "subject": "Beta test",
-            "message": "Welcome to beta test",
-            "html_message": "<h1>Welcome to beta test</h1>",
+            "subject": "SightQuest БетаТест",
+            "html_message": render_to_string("email-message.html"),
         }
         send_mailing.delay([subscriber.email], mail_data)
