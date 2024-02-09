@@ -7,7 +7,7 @@ django.setup()
 
 import json
 
-from apps.api.models import GameUser, GameQuestTask, GamePhoto
+from apps.api.models import Player, GameQuestTask, GamePhoto
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from django.contrib.auth import get_user_model
@@ -22,7 +22,7 @@ class GameConsumer(WebsocketConsumer):
     game_group_name: str
     game_manager: GameManager
     user: User = None
-    game_user: GameUser = None
+    player: Player = None
 
     def connect(self):
         self.game_code = str(self.scope["url_route"]["kwargs"]["game_id"])
@@ -84,7 +84,7 @@ class GameConsumer(WebsocketConsumer):
         self.user = User.objects.filter(id=int(data_json["token"])).first()
         if self.user is not None:
             self.game_manager.add_player(self.user)
-            self.game_user = GameUser.objects.filter(game=self.game_manager.game, user=self.user).first()
+            self.player = Player.objects.filter(game=self.game_manager.game, user=self.user).first()
             self.send_status_message(f"authorization succeed as {self.user}")
         else:
             self.send_error_message("authorization failed")
@@ -147,7 +147,7 @@ class GameConsumer(WebsocketConsumer):
         ).first()
 
         self.game_manager.complete_task(
-            game_user=self.game_user,
+            player=self.player,
             game_task=game_task,
             game_photo=game_photo
         )
@@ -157,7 +157,7 @@ class GameConsumer(WebsocketConsumer):
     def on_receive_player_caught(self, data_json):
         secret: str = data_json["secret"]
         self.game_manager.catch_player(
-            self.game_user,
+            self.player,
             self.game_manager.get_player_by_secret(secret)
         )
         self.group_broadcast(data_json)

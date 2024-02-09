@@ -140,7 +140,7 @@ def generate_secret(length=6):
     return new_secret
 
 
-class GameUser(models.Model):
+class Player(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name="players")
     ROLE_CHOICES = [
@@ -183,7 +183,7 @@ class GameQuestTask(models.Model):
 # Модель для выполнения задачи игроком
 class PlayerTaskCompletion(models.Model):
     player = models.ForeignKey(
-        GameUser,
+        Player,
         on_delete=models.CASCADE,
         related_name="completed",
     )

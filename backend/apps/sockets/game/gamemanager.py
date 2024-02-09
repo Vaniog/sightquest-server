@@ -4,7 +4,7 @@ import secrets
 from django.utils import timezone
 
 from apps.api.serializers import GameSerializer
-from apps.api.models import Game, Coordinate, GameUser, GameQuestTask, QuestTask, PlayerTaskCompletion, GamePhoto
+from apps.api.models import Game, Coordinate, Player, GameQuestTask, QuestTask, PlayerTaskCompletion, GamePhoto
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -44,10 +44,10 @@ class GameManager:
 
     def add_player(self, user: User):
         if self.game.players.filter(user=user).count() == 0:
-            game_user = GameUser(game=self.game, user=user)
+            player = Player(game=self.game, user=user)
             if self.game.players.filter(role="RUNNER").count() == 0:
-                game_user.role = "RUNNER"
-            game_user.save()
+                player.role = "RUNNER"
+            player.save()
         self.refresh_from_db()
 
     def task2game_task(self, quest_task: QuestTask) -> GameQuestTask:
@@ -56,23 +56,23 @@ class GameManager:
             quest_task=quest_task
         ).first()
 
-    def complete_task(self, game_user: GameUser, game_task: GameQuestTask, game_photo: GamePhoto):
-        if game_user is None or game_task is None or game_photo is None:
+    def complete_task(self, player: Player, game_task: GameQuestTask, game_photo: GamePhoto):
+        if player is None or game_task is None or game_photo is None:
             raise ValueError("Some data does not exists")
         PlayerTaskCompletion(
-            player=game_user,
+            player=player,
             game_task=game_task,
             photo=game_photo
         ).save()
         self.refresh_from_db()
 
-    def get_player_by_secret(self, secret: str) -> GameUser:
-        game_user = self.game.players.filter(secret=secret).first()
-        if game_user is None:
+    def get_player_by_secret(self, secret: str) -> Player:
+        player = self.game.players.filter(secret=secret).first()
+        if player is None:
             raise ValueError("Person with this code does not exists")
-        return game_user
+        return player
 
-    def catch_player(self, catcher: GameUser, runner: GameUser):
+    def catch_player(self, catcher: Player, runner: Player):
         if catcher.role != "CATCHER":
             raise ValueError("Person who tries to catch is not a catcher")
         if runner.role != "RUNNER":

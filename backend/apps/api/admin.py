@@ -10,7 +10,7 @@ from .models import (
     Region,
     GameSettings,
     Game,
-    GameUser,
+    Player,
     GameQuestTask, PlayerTaskCompletion, Route
 )
 
@@ -21,8 +21,8 @@ class GamePhotoInline(admin.TabularInline):
     extra = 1
 
 
-class GameUserInline(admin.TabularInline):
-    model = GameUser
+class PlayerInline(admin.TabularInline):
+    model = Player
     extra = 1
 
 
@@ -99,7 +99,7 @@ class GameAdmin(admin.ModelAdmin):
         'host__username', 'created_at', 'started_at', 'ended_at')  # Поля, по которым можно производить поиск
     list_filter = ('host', 'created_at', 'started_at')  # Фильтры в боковой панели
     ordering = ('-created_at',)  # Сортировка (по умолчанию в порядке убывания)
-    inlines = [GameUserInline]
+    inlines = [PlayerInline]
 
 
 @admin.register(PlayerTaskCompletion)

@@ -11,7 +11,7 @@ from .models import (
     Game,
     GamePhoto,
     GameSettings,
-    GameUser,
+    Player,
     PlayerTaskCompletion,
     QuestPoint,
     QuestTask,
@@ -101,17 +101,17 @@ class PlayerTaskCompletionSerializer(serializers.ModelSerializer):
         fields = ["completed_at", "photo", "task_id"]
 
 
-class GameUserSerializer(serializers.ModelSerializer):
+class PlayerSerializer(serializers.ModelSerializer):
     user = UserSerializer()
     completed = PlayerTaskCompletionSerializer(many=True, read_only=True)
 
     class Meta:
-        model = GameUser
+        model = Player
         fields = ["user", "role", "completed", "secret"]
 
 
 class GameSerializer(serializers.ModelSerializer):
-    players = GameUserSerializer(many=True)
+    players = PlayerSerializer(many=True)
     settings = SettingsSerializer()
     host_username = serializers.SerializerMethodField()
 
