@@ -44,10 +44,10 @@ class GameConsumer(WebsocketConsumer):
         try:
             event_type = text_data_json["event"]
         except ValueError:
-            self.send_status_message("Wrong protocol (use event)")
+            self.send_error_message("Wrong protocol (use event)")
             return
         except TypeError:
-            self.send_status_message("Wrong protocol (use event)")
+            self.send_error_message("Wrong protocol (use event)")
             return
 
         if event_type == "authorization":
@@ -55,7 +55,7 @@ class GameConsumer(WebsocketConsumer):
             return
 
         if self.user is None:
-            self.send_status_message("You didnt complete authorization")
+            self.send_error_message("You didnt complete authorization")
             self.close()
 
         try:
@@ -74,9 +74,9 @@ class GameConsumer(WebsocketConsumer):
             else:
                 self.group_broadcast(text_data_json)
         except ValueError as err:
-            self.send_status_message(str(err))
+            self.send_error_message(str(err))
         except GameManager.IllegalStateAction:
-            self.send_status_message(
+            self.send_error_message(
                 f"You can't perform {event_type} event in {self.game_manager.game.state} state"
             )
 
@@ -87,7 +87,7 @@ class GameConsumer(WebsocketConsumer):
             self.game_user = GameUser.objects.filter(game=self.game_manager.game, user=self.user).first()
             self.send_status_message(f"authorization succeed as {self.user}")
         else:
-            self.send_status_message("authorization failed")
+            self.send_error_message("authorization failed")
             self.close()
 
     def send_game_state(self):
@@ -113,6 +113,12 @@ class GameConsumer(WebsocketConsumer):
     def send_status_message(self, message):
         self.send(json.dumps({
             "event": "status",
+            "message": message
+        }))
+
+    def send_error_message(self, message):
+        self.send(json.dumps({
+            "event": "error",
             "message": message
         }))
 
