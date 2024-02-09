@@ -17,6 +17,18 @@ class GameManager:
         self.game = game
         self.game_json = GameSerializer(game).data
 
+    class IllegalStateAction(Exception):
+        pass
+
+    @staticmethod
+    def lobby_required(func):
+        def wrapper(self, *args, **kwargs):
+            if self.game.state != "LOBBY":
+                raise GameManager.IllegalStateAction()
+            func(self, *args, **kwargs)
+
+        return wrapper
+
     def refresh_from_db(self):
         self.game.refresh_from_db()
         self.game_json = GameSerializer(self.game).data
@@ -97,8 +109,10 @@ class GameManager:
         runner.save()
 
         self.game.state = "PLAYING"
+        self.game.save()
         self.refresh_from_db()
 
+    @lobby_required
     def update_settings(
             self,
             duration: datetime.timedelta,

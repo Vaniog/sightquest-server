@@ -43,10 +43,10 @@ class GameConsumer(WebsocketConsumer):
         text_data_json = json.loads(text_data)
         try:
             event_type = text_data_json["event"]
-        except ValueError as err:
+        except ValueError:
             self.send_status_message("Wrong protocol (use event)")
             return
-        except TypeError as err:
+        except TypeError:
             self.send_status_message("Wrong protocol (use event)")
             return
 
@@ -60,7 +60,7 @@ class GameConsumer(WebsocketConsumer):
 
         try:
             if event_type == "get_game_state":
-                self.on_receive_send_game_state(text_data_json)
+                self.on_receive_send_game_state()
             elif event_type == "location_update":
                 self.on_receive_location_update(text_data_json)
             elif event_type == "task_completed":
@@ -75,6 +75,10 @@ class GameConsumer(WebsocketConsumer):
                 self.group_broadcast(text_data_json)
         except ValueError as err:
             self.send_status_message(str(err))
+        except GameManager.IllegalStateAction:
+            self.send_status_message(
+                f"You can't perform {event_type} event in {self.game_manager.game.state} state"
+            )
 
     def on_receive_authorization(self, data_json):
         self.user = User.objects.filter(id=int(data_json["token"])).first()
@@ -116,7 +120,7 @@ class GameConsumer(WebsocketConsumer):
         self.game_manager.set_player_coordinates(self.user.id, data_json["coordinates"])
         self.group_broadcast(data_json)
 
-    def on_receive_send_game_state(self, data_json):
+    def on_receive_send_game_state(self):
         self.send_game_state()
 
     def disconnect(self, close_code):
