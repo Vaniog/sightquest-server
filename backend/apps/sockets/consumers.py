@@ -1,5 +1,4 @@
 import os
-import secrets
 
 import django
 
@@ -8,13 +7,12 @@ django.setup()
 
 import json
 
-from apps.api.models import GameUser, GameQuestTask, GameSettings, GamePhoto
+from apps.api.models import GameUser, GameQuestTask, GamePhoto
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from django.contrib.auth import get_user_model
 from .game.gamemanager import GameManagerHolder, GameManager
 from datetime import timedelta, datetime
-from django.utils import timezone
 
 User = get_user_model()
 
@@ -43,7 +41,15 @@ class GameConsumer(WebsocketConsumer):
 
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        event_type = text_data_json["event"]
+        try:
+            event_type = text_data_json["event"]
+        except ValueError as err:
+            self.send_status_message("Wrong protocol (use event)")
+            return
+        except TypeError as err:
+            self.send_status_message("Wrong protocol (use event)")
+            return
+
         if event_type == "authorization":
             self.on_receive_authorization(text_data_json)
             return
@@ -52,20 +58,23 @@ class GameConsumer(WebsocketConsumer):
             self.send_status_message("You didnt complete authorization")
             self.close()
 
-        if event_type == "get_game_state":
-            self.on_receive_send_game_state(text_data_json)
-        elif event_type == "location_update":
-            self.on_receive_location_update(text_data_json)
-        elif event_type == "task_completed":
-            self.on_receive_task_completed(text_data_json)
-        elif event_type == "player_caught":
-            self.on_receive_player_caught(text_data_json)
-        elif event_type == "settings_update":
-            self.on_receive_settings_update(text_data_json)
-        elif event_type == "start_game":
-            self.on_receive_start_game(text_data_json)
-        else:
-            self.group_broadcast(text_data_json)
+        try:
+            if event_type == "get_game_state":
+                self.on_receive_send_game_state(text_data_json)
+            elif event_type == "location_update":
+                self.on_receive_location_update(text_data_json)
+            elif event_type == "task_completed":
+                self.on_receive_task_completed(text_data_json)
+            elif event_type == "player_caught":
+                self.on_receive_player_caught(text_data_json)
+            elif event_type == "settings_update":
+                self.on_receive_settings_update(text_data_json)
+            elif event_type == "start_game":
+                self.on_receive_start_game(text_data_json)
+            else:
+                self.group_broadcast(text_data_json)
+        except ValueError as err:
+            self.send_status_message(str(err))
 
     def on_receive_authorization(self, data_json):
         self.user = User.objects.filter(id=int(data_json["token"])).first()
@@ -118,36 +127,30 @@ class GameConsumer(WebsocketConsumer):
         )
 
     def on_receive_task_completed(self, data_json):
-        try:
-            task_id = int(data_json["task_id"])
-            photo_id = int(data_json["photo_id"])
-            game_photo: GamePhoto = GamePhoto.objects.filter(id=photo_id).first()
+        task_id = int(data_json["task_id"])
+        photo_id = int(data_json["photo_id"])
+        game_photo: GamePhoto = GamePhoto.objects.filter(id=photo_id).first()
 
-            game_task = GameQuestTask.objects.filter(
-                settings__game=self.game_manager.game,
-                quest_task_id=task_id
-            ).first()
+        game_task = GameQuestTask.objects.filter(
+            settings__game=self.game_manager.game,
+            quest_task_id=task_id
+        ).first()
 
-            self.game_manager.complete_task(
-                game_user=self.game_user,
-                game_task=game_task,
-                game_photo=game_photo
-            )
+        self.game_manager.complete_task(
+            game_user=self.game_user,
+            game_task=game_task,
+            game_photo=game_photo
+        )
 
-            self.group_broadcast(data_json)
-        except ValueError as err:
-            self.send_status_message(str(err))
+        self.group_broadcast(data_json)
 
     def on_receive_player_caught(self, data_json):
-        try:
-            secret: str = data_json["secret"]
-            self.game_manager.catch_player(
-                self.game_user,
-                self.game_manager.get_player_by_secret(secret)
-            )
-            self.group_broadcast(data_json)
-        except ValueError as err:
-            self.send_status_message(str(err))
+        secret: str = data_json["secret"]
+        self.game_manager.catch_player(
+            self.game_user,
+            self.game_manager.get_player_by_secret(secret)
+        )
+        self.group_broadcast(data_json)
 
     def on_receive_settings_update(self, data_json):
         settings = data_json["settings"]
