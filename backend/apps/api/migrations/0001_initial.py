@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('title', models.CharField(default='No title', max_length=100)),
                 ('description', models.TextField(default='No description')),
-                ('image', models.ImageField(null=True, upload_to=apps.api.models.quest_directiory_path)),
+                ('image', models.ImageField(null=True, upload_to=apps.api.models.quest_point_file_path)),
                 ('location', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='api.coordinate')),
             ],
         ),
