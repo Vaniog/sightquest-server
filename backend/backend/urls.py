@@ -1,4 +1,5 @@
 from apps.sockets.views import game_socket
+from django.conf import settings
 from django.contrib import admin
 
 # Docs
@@ -6,7 +7,6 @@ from django.urls import include, path, re_path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
-from django.conf import settings
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -24,7 +24,7 @@ urlpatterns = [
     #    "api/redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"
     # ),
     # Custom
-    path("admin/", admin.site.urls),
+    path("api/admin/", admin.site.urls),
     path("api/", include("apps.api.urls")),
     path("api/", include("apps.mailer.urls")),
     path("", game_socket),

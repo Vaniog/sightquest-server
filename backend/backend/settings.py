@@ -11,10 +11,10 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 import os
+from datetime import timedelta
 from pathlib import Path
 
 from dotenv import load_dotenv
-from datetime import timedelta
 
 load_dotenv()
 
@@ -30,19 +30,21 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG_MODE", "True") == "True"
 
-ALLOWED_HOSTS = [os.getenv("ALLOWED_HOST"), "0.0.0.0"]
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split() or []
 
 CSRF_TRUSTED_ORIGINS = []
 if scrf_subdomain := os.getenv("SCRF_SUBDOMAIN"):
     CSRF_TRUSTED_ORIGINS += [f"http://{scrf_subdomain}", f"https://{scrf_subdomain}"]
 
+
 # CORS_HEADERS
+cors_allow_headers = os.getenv("CORS_ALLOW_HEADERS")
+CORS_ALLOW_HEADERS = cors_allow_headers.split(",") if cors_allow_headers else ["*"]
 
-CORS_ALLOW_HEADERS = ["*"]
+CORS_ORIGIN_ALLOW_ALL = os.getenv("CORS_ORIGIN_ALLOW_ALL", "False") == "True"
 
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = os.getenv("CORS_ALLOW_CREDENTIALS", "False") == "True"
 
-CORS_ALLOW_CREDENTIALS = False
 
 # Application definition
 
@@ -212,7 +214,7 @@ CACHES = {
 CELERY_CACHE_BACKEND = "default"
 
 # Сюда добавлять новые приложения, которые используют shared таски
-CELERY_IMPORTS = ('apps.mailer.tasks',)
+CELERY_IMPORTS = ("apps.mailer.tasks",)
 
 # Yandex Cloud settings
 YANDEX_BUCKET_NAME = os.getenv("YANDEX_BUCKET_NAME")
@@ -349,11 +351,14 @@ JAZZMIN_SETTINGS = {
 
 # Email
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' \
-    if os.getenv('EMAIL') == 'True' else 'django.core.mail.backends.console.EmailBackend'
-EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_BACKEND = (
+    "django.core.mail.backends.smtp.EmailBackend"
+    if os.getenv("EMAIL") == "True"
+    else "django.core.mail.backends.console.EmailBackend"
+)
+EMAIL_HOST = os.getenv("EMAIL_HOST")
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
