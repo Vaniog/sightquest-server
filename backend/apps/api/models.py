@@ -12,7 +12,7 @@ import string
 from backend.yandex_s3_storage import ClientDocsStorage
 
 
-def quest_directiory_path(instance, filename):
+def quest_point_file_path(instance, filename):
     return "quest_points/{0}".format(filename)
 
 
@@ -52,7 +52,7 @@ class QuestPoint(models.Model):
     description = models.TextField(blank=False, null=False, default="No description")
     location = models.ForeignKey(Coordinate, on_delete=models.SET_NULL, null=True)
     image = models.ImageField(
-        upload_to="quest_point_images/", null=True, storage=ClientDocsStorage()
+        upload_to=quest_point_file_path, null=True, storage=ClientDocsStorage()
     )
     city = models.ForeignKey(
         City, on_delete=models.SET_NULL, related_name="quest_points", null=True
@@ -140,7 +140,7 @@ def generate_secret(length=6):
     return new_secret
 
 
-class GameUser(models.Model):
+class Player(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name="players")
     ROLE_CHOICES = [
@@ -183,7 +183,7 @@ class GameQuestTask(models.Model):
 # Модель для выполнения задачи игроком
 class PlayerTaskCompletion(models.Model):
     player = models.ForeignKey(
-        GameUser,
+        Player,
         on_delete=models.CASCADE,
         related_name="completed",
     )
