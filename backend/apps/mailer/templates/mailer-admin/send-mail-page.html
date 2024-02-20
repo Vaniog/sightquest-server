@@ -1,4 +1,6 @@
-{% extends 'mailer-admin/base.html' %} {% block content %}
+{% extends 'mailer-admin/base.html' %} {% load static %} {% block css%}
+<link rel="stylesheet" href="{% static 'mailer-admin/css/mailing.css' %}" />
+{% endblock %} {% block content %}
 <div class="mailing-container-1">
   <div class="mailing-section-1">
     <div class="mailing-upper-section">

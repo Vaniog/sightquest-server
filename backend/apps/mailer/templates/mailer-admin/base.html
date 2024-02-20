@@ -14,11 +14,22 @@
     />
 
     <link rel="stylesheet" href="{% static 'mailer-admin/css/base.css' %}" />
-    <link rel="stylesheet" href="{% static 'mailer-admin/css/mailing.css' %}" />
+    {% block css %} {% endblock %}
 
-    <link rel="icon" href="mailer-admin/img/favicon.ico" sizes="any" />
-    <link rel="icon" href="mailer-admin/img/icon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="mailer-admin/img/icon.png" />
+    <link
+      rel="icon"
+      href="{% static 'mailer-admin/img/favicon.ico' %}"
+      sizes="any"
+    />
+    <link
+      rel="icon"
+      href="{% static 'mailer-admin/img/icon.svg' %}"
+      type="image/svg+xml"
+    />
+    <link
+      rel="apple-touch-icon"
+      href="{% static 'mailer-admin/img/icon.png' %}"
+    />
 
     <meta name="theme-color" content="#fafafa" />
   </head>

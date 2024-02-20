@@ -302,7 +302,7 @@ JAZZMIN_SETTINGS = {
     "usermenu_links": [
         {
             "name": "Landing page",
-            "url": "http://shampiniony.ru/",
+            "url": "http://sightquest.ru/",
             "new_window": True,
         },
         {"model": "auth.user"},
