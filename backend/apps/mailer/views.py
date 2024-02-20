@@ -1,31 +1,35 @@
 from django.conf import settings
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
+from .serializers import MailingSerializerWriteOnly, MailingSerializerReadOnly
+from .models import Mailing
+from .tasks import send_mail
 from django.urls import reverse
 from rest_framework import generics
-from rest_framework.generics import CreateAPIView
-from rest_framework.response import Response
-from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 
 from .models import Subscriber
-from .serializers import MailingSerializer, MailSerializer, SubscriberSerializer
+from .serializers import SubscriberSerializer
 from .tasks import send_mailing
 
 
-class MailingView(CreateAPIView):
-    serializer_class = MailingSerializer
+class MailingCreateView(generics.CreateAPIView):
+    serializer_class = MailingSerializerWriteOnly
+    queryset = Mailing.objects.all()
 
-    @staticmethod
-    def post(request, *args, **kwargs):
-        serializer = MailingSerializer(data=request.data)
-        if serializer.is_valid():
-            emails: list = serializer.validated_data.get("emails")
-            mail: MailSerializer = serializer.validated_data.get("mail")
+    def perform_create(self, serializer: MailingSerializerWriteOnly):
+        mailing = serializer.save()
+        emails: list = serializer.validated_data.get('emails')
+        send_mailing.delay(emails, mailing.id)
 
-            send_mailing.delay(emails, mail)
 
-            return Response({"success": True}, status=HTTP_200_OK)
-        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+class MailingListView(generics.ListAPIView):
+    serializer_class = MailingSerializerReadOnly
+    queryset = Mailing.objects.all()
+
+
+class MailingRetrieveView(generics.RetrieveAPIView):
+    serializer_class = MailingSerializerReadOnly
+    queryset = Mailing.objects.all()
 
 
 class SubscriberListCreateView(generics.ListCreateAPIView):
@@ -38,7 +42,7 @@ class SubscriberListCreateView(generics.ListCreateAPIView):
             "subject": "SightQuest БетаТест",
             "html_message": render_to_string("email-message.html"),
         }
-        send_mailing.delay([subscriber.email], mail_data)
+        send_mail.delay([subscriber.email], mail_data)
 
 
 def mailing_admin(request):
