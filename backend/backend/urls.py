@@ -1,3 +1,4 @@
+from apps.mailer.views import mailing_admin
 from apps.sockets.views import game_socket
 from django.conf import settings
 from django.contrib import admin
@@ -25,6 +26,7 @@ urlpatterns = [
     # ),
     # Custom
     path("api/admin/", admin.site.urls),
+    path("api/mailing-admin/", mailing_admin, name="mailing-admin"),
     path("api/", include("apps.api.urls")),
     path("api/", include("apps.mailer.urls")),
     path("", game_socket),

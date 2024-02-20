@@ -1,0 +1,105 @@
+{% load static %}
+<!DOCTYPE html>
+<html class="no-js" lang="">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mailing admin</title>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      crossorigin="anonymous"
+    />
+
+    <link rel="stylesheet" href="{% static 'mailer-admin/css/base.css' %}" />
+    <link rel="stylesheet" href="{% static 'mailer-admin/css/mailing.css' %}" />
+
+    <link rel="icon" href="mailer-admin/img/favicon.ico" sizes="any" />
+    <link rel="icon" href="mailer-admin/img/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="mailer-admin/img/icon.png" />
+
+    <meta name="theme-color" content="#fafafa" />
+  </head>
+
+  <body>
+    <div class="wrapper">
+      <div class="jazzy-navbar">
+        <div class="navbar-items">
+          <div class="nav-bar-url">
+            <a href="#">В админку</a>
+          </div>
+          <div class="nav-bar-url">
+            <a href="#">Выход</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="jazzy-sidebar">
+        <a href="#" class="jazzy-logo">
+          <img
+            class="img-circle brand-image elevation-3"
+            src="http://45.141.76.253/static/vendor/adminlte/img/AdminLTELogo.png"
+            alt="logo"
+          />
+          <span class="brand-text font-weight-light">shampiniony</span>
+        </a>
+
+        <div class="sidebar">
+          <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+            <div class="user-avatar">
+              <img
+                class="rounded-circle"
+                src="{% static 'mailer-admin/img/icon.png' %}"
+                alt="user-avatar"
+              />
+            </div>
+            <div class="user-info">
+              <a class="d-block brand-text" href="#"> nickname </a>
+            </div>
+          </div>
+          <nav class="mt-2">
+            <ul
+              class="nav nav-pills nav-sidebar flex-column"
+              data-widget="treeview"
+              data-collapsible="false"
+            >
+              <li class="nav-item">
+                <a href="#" class="nav-link active">
+                  <img
+                    class="nav-image"
+                    src="{% static 'mailer-admin/img/mail-icon.png' %}"
+                    alt=""
+                  />
+                  <span>Mailing</span>
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+
+      <div class="content-wrapper">{% block content %} {% endblock %}</div>
+
+      <footer class="mt-auto">
+        <div class="footer-div">
+          <strong>Copyright © 2024 MIT shampiniony. </strong>
+          All rights reserved.
+        </div>
+      </footer>
+    </div>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+      integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.min.js"
+      integrity="sha384-Rx+T1VzGupg4BHQYs2gCW9It+akI2MM/mndMCy36UVfodzcJcF0GGLxZIzObiEfa"
+      crossorigin="anonymous"
+    ></script>
+    <script src="{% static 'mailer-admin/js/mailing.js' %}"></script>
+  </body>
+</html>

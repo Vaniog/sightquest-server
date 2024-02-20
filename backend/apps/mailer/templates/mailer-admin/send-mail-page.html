@@ -1,0 +1,95 @@
+{% extends 'mailer-admin/base.html' %} {% block content %}
+<div class="mailing-container-1">
+  <div class="mailing-section-1">
+    <div class="mailing-upper-section">
+      <form id="emailForm">
+        <div>
+          <label for="subjectInput">Тема письма:</label>
+          <input type="text" id="subjectInput" name="subject" />
+        </div>
+        <div>
+          <label for="htmlInput">Содержимое в HTML:</label>
+          <textarea id="htmlInput" name="htmlContent"></textarea>
+        </div>
+        <div>
+          <label for="pureTextInput">Чистый текст:</label>
+          <textarea id="pureTextInput" name="pureTextContent"></textarea>
+        </div>
+        <button type="submit" id="writeEmailButton">Отправить</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="mailing-container-2">
+  <div class="mailing-lower-section">
+    <div id="filters" class="mailing-filters">
+      <button id="selectAll">Выбрать все</button>
+      <div>
+        <label for="inGameFilter">Показать только в игре:</label>
+        <input type="checkbox" id="inGameFilter" onchange="filterTable()" />
+      </div>
+    </div>
+
+    <form id="mailingListForm">
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Выбрать</th>
+              <th>Адрес электронной почты</th>
+              <th>В игре</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <input
+                  type="checkbox"
+                  name="email"
+                  value="email1@example.com"
+                />
+              </td>
+              <td>email1@example.com</td>
+              <td><input type="checkbox" name="inGame" checked /></td>
+            </tr>
+            <tr>
+              <td>
+                <input
+                  type="checkbox"
+                  name="email"
+                  value="email2@example.com"
+                />
+              </td>
+              <td>email2@example.com</td>
+              <td><input type="checkbox" name="inGame" /></td>
+            </tr>
+            <tr>
+              <td>
+                <input
+                  type="checkbox"
+                  name="email"
+                  value="shram.monolit@mail.ru"
+                />
+              </td>
+              <td>shram.monolit@mail.ru</td>
+              <td><input type="checkbox" name="inGame" /></td>
+            </tr>
+            <tr>
+              <td>
+                <input
+                  type="checkbox"
+                  name="email"
+                  value="forvantar@gmail.com"
+                />
+              </td>
+              <td>forvantar@gmail.com</td>
+              <td><input type="checkbox" name="inGame" /></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
