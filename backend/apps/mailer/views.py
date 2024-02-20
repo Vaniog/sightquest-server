@@ -1,13 +1,12 @@
 from django.template.loader import render_to_string
-from rest_framework.generics import CreateAPIView
-from .serializers import MailingSerializerWriteOnly
+from .serializers import MailingSerializerWriteOnly, MailingSerializerReadOnly
 from rest_framework import generics
-from .models import Subscriber, Mailing, Mail
+from .models import Subscriber, Mailing
 from .serializers import SubscriberSerializer
 from .tasks import send_mailing, send_mail
 
 
-class MailingView(CreateAPIView):
+class MailingCreateView(generics.CreateAPIView):
     serializer_class = MailingSerializerWriteOnly
     queryset = Mailing.objects.all()
 
@@ -15,6 +14,16 @@ class MailingView(CreateAPIView):
         mailing = serializer.save()
         emails: list = serializer.validated_data.get('emails')
         send_mailing.delay(emails, mailing.id)
+
+
+class MailingListView(generics.ListAPIView):
+    serializer_class = MailingSerializerReadOnly
+    queryset = Mailing.objects.all()
+
+
+class MailingRetrieveView(generics.RetrieveAPIView):
+    serializer_class = MailingSerializerReadOnly
+    queryset = Mailing.objects.all()
 
 
 class SubscriberListCreateView(generics.ListCreateAPIView):

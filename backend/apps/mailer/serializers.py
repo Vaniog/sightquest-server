@@ -22,7 +22,7 @@ class MailingSerializerReadOnly(serializers.ModelSerializer):
 
     class Meta:
         model = Mailing
-        fields = ["from_email", "created_at", "recipients", "mail", "status"]
+        fields = ["id", "from_email", "created_at", "recipients", "mail", "status"]
         read_only_fields = fields
 
 
@@ -32,8 +32,8 @@ class MailingSerializerWriteOnly(serializers.ModelSerializer):
 
     class Meta:
         model = Mailing
-        fields = ["emails", "mail"]
-        write_only_fields = fields
+        fields = ["id", "emails", "mail"]
+        write_only_fields = ["emails", "mail"]
 
     def create(self, validated_data):
         validated_data["from_email"] = settings.EMAIL_HOST_USER
