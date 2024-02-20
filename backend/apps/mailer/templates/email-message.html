@@ -1,100 +1,122 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
-    <title>SightQuest</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Приглашение на бета-тест SightQuest</title>
     <style>
-        html {
-        }
-
-        body {
-            font-family: 'Roboto', sans-serif;
-            display: flex;
-            margin: 1.5em;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .big-text {
-            padding: 1em;
-            border-radius: 1em;
-            margin-bottom: 0.4em;
-            background-color: #505050;
-            text-transform: uppercase;
-            color: #d8fd99;
-            font-weight: bold;
-            display: flex;
-            justify-content: center;
-            font-size: larger;
-            box-sizing: border-box;
-            width: 100%;
-        }
-
-        .normal-text {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 1em;
-            border-radius: 1em;
-            background-color: #d8fd99;
-            text-align: center;
-            color: black;
-            box-sizing: border-box;
-            min-height: 5em;
-            width: 100%;
-            margin-bottom: 0.4em;
-        }
-
-        .footer {
-            padding: 1em;
-            border-radius: 1em;
-            background-color: #d2d2d2;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            box-sizing: border-box;
-            width: 100%;
-        }
-
-        img {
-            max-height: 6em;
-            padding: 1em;
-        }
-
-        a {
-            color: #007bff;
-            text-decoration: none;
-        }
-
-        .middle {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            background-color: #898ba8;
-            width: 100%;
-            border-radius: 1em;
-            margin-bottom: 0.4em;
-        }
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+      }
+      table {
+        border-spacing: 0;
+      }
+      img {
+        border: none;
+      }
+      .content {
+        max-width: 600px;
+        margin: auto;
+      }
     </style>
+  </head>
+  <body>
+    <table
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      border="0"
+      bgcolor="#f4f4f4"
+    >
+      <tr>
+        <td align="center" valign="top" style="padding: 20px">
+          <table
+            class="content"
+            bgcolor="#FFFFFF"
+            cellpadding="0"
+            cellspacing="0"
+            border="0"
+          >
+            <!-- Header -->
+            <tr>
+              <td
+                bgcolor="#505050"
+                style="
+                  color: #d8fd99;
+                  padding: 20px;
+                  text-align: center;
+                  font-family: Arial, sans-serif;
+                  font-size: 24px;
+                  font-weight: bold;
+                "
+              >
+                Добро пожаловать в SightQuest!
+              </td>
+            </tr>
 
+            <!-- Image -->
+            <tr>
+              <td align="center" style="padding: 20px">
+                <img
+                  src="https://i.imgur.com/tFuwuS6.png"
+                  alt=""
+                  width="100"
+                  height="100"
+                  style="display: block"
+                />
+              </td>
+            </tr>
 
-</head>
+            <!-- Text -->
+            <tr>
+              <td
+                style="
+                  padding: 20px;
+                  text-align: center;
+                  font-family: Arial, sans-serif;
+                  color: #000000;
+                "
+              >
+                <p>
+                  Мы уведомим вас, когда появится доступ к закрытому бета
+                  тестированию.
+                </p>
+              </td>
+            </tr>
 
-<body>
-<div class="big-text">Спасибо за Ваш интерес к SightQuest!</div>
-<div class="middle">
-    <img src="https://i.imgur.com/tFuwuS6.png"
-         alt="">
-</div>
-<div class="normal-text"><span>Мы уведомим вас, когда появится доступ к закрытому бета тестированию</span></div>
-<div class="footer"><span style="margin-right:0.3em"> Наш канал</span> <a href="https://t.me/shampiniony">https://t.me/shampiniony</a>
-</div>
-
-</body>
+            <!-- Footer -->
+            <tr>
+              <td
+                bgcolor="#d2d2d2"
+                style="
+                  padding: 20px;
+                  text-align: center;
+                  font-family: Arial, sans-serif;
+                  font-size: 14px;
+                  color: #000000;
+                "
+              >
+                <p>
+                  Наш канал:
+                  <a
+                    href="https://t.me/shampiniony"
+                    style="
+                      color: #007bff;
+                      text-decoration: none;
+                      font-weight: bold;
+                    "
+                    >https://t.me/shampiniony</a
+                  >
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
 </html>
