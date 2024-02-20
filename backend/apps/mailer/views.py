@@ -1,5 +1,7 @@
+from django.conf import settings
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
+from django.urls import reverse
 from rest_framework import generics
 from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
@@ -40,4 +42,18 @@ class SubscriberListCreateView(generics.ListCreateAPIView):
 
 
 def mailing_admin(request):
-    return render(request, "mailer-admin/send-mail-page.html")
+    if request.user.is_authenticated:
+        user = request.user
+
+        change_user_url = reverse("admin:users_customuser_change", args=[user.id])
+
+        content = {
+            "user": user,
+            "site_settings": settings.JAZZMIN_SETTINGS,
+            "change_user_url": change_user_url,
+            "admin_url": reverse("admin:index"),
+        }
+
+        return render(request, "mailer-admin/send-mail-page.html", content)
+    else:
+        return redirect("admin:index")

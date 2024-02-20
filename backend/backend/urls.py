@@ -2,6 +2,7 @@ from apps.mailer.views import mailing_admin
 from apps.sockets.views import game_socket
 from django.conf import settings
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
 
 # Docs
 from django.urls import include, path, re_path
@@ -13,7 +14,7 @@ schema_view = get_schema_view(
     openapi.Info(
         title="API",
         default_version="v1",
-        description="API for NoLabelAPI hackyhon",
+        description="API for SightQuest",
         license=openapi.License(name="MIT License"),
     ),
     public=True,
@@ -27,6 +28,7 @@ urlpatterns = [
     # Custom
     path("api/admin/", admin.site.urls),
     path("api/mailing-admin/", mailing_admin, name="mailing-admin"),
+    path("api/mailing-admin/logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("api/", include("apps.api.urls")),
     path("api/", include("apps.mailer.urls")),
     path("", game_socket),
