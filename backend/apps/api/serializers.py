@@ -153,6 +153,7 @@ class QuestTaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuestTask
         fields = ("id", "title", "description", "quest_point")
+        write_only_fields = ("quest_point",)
 
     def create(self, validated_data):
         quest_point = validated_data.pop("quest_point")
