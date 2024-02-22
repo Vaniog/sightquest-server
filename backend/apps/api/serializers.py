@@ -148,7 +148,7 @@ class GameSerializer(serializers.ModelSerializer):
 
 
 class QuestTaskSerializer(serializers.ModelSerializer):
-    quest_point = serializers.PrimaryKeyRelatedField(queryset=QuestPoint.objects.all())
+    quest_point = serializers.PrimaryKeyRelatedField(queryset=QuestPoint.objects.all(), write_only=True)
 
     class Meta:
         model = QuestTask
