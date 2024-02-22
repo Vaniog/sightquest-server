@@ -164,6 +164,7 @@ class GameConsumer(WebsocketConsumer):
             self.player,
             self.game_manager.get_player_by_secret(secret)
         )
+        self.player.refresh_from_db()
         self.group_broadcast(data_json)
 
     def on_receive_settings_update(self, data_json):
