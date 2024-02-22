@@ -164,7 +164,7 @@ class GameConsumer(WebsocketConsumer):
             self.player,
             self.game_manager.get_player_by_secret(secret)
         )
-        self.player.refresh_from_db()
+        self.refresh_all_players()
         self.group_broadcast(data_json)
 
     def on_receive_settings_update(self, data_json):
@@ -189,3 +189,14 @@ class GameConsumer(WebsocketConsumer):
     def on_receive_start_game(self, data_json):
         self.game_manager.start_game()
         self.group_broadcast(data_json)
+        self.refresh_all_players()
+
+    def refresh_all_players(self):
+        async_to_sync(self.channel_layer.group_send)(
+            self.game_group_name, {
+                "type": "refresh_player",
+            }
+        )
+
+    def refresh_player(self):
+        self.player.refresh_from_db()
