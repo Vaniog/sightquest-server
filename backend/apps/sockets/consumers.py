@@ -37,7 +37,7 @@ class GameConsumer(WebsocketConsumer):
         )
         self.accept()
 
-        self.send_status_message("connection succeed")
+        self.send_status_message("connection succeeded")
 
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
@@ -52,6 +52,10 @@ class GameConsumer(WebsocketConsumer):
 
         if event_type == "authorization":
             self.on_receive_authorization(text_data_json)
+            self.group_broadcast({
+                "event": "gamestate_update",
+                "state": self.game_manager.process_to_json()
+            })
             return
 
         if self.user is None:
@@ -85,7 +89,7 @@ class GameConsumer(WebsocketConsumer):
         if self.user is not None:
             self.game_manager.add_player(self.user)
             self.player = Player.objects.filter(game=self.game_manager.game, user=self.user).first()
-            self.send_status_message(f"authorization succeed as {self.user}")
+            self.send_status_message(f"authorization succeeded as {self.user}")
         else:
             self.send_error_message("authorization failed")
             self.close()
