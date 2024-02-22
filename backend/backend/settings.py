@@ -36,7 +36,6 @@ CSRF_TRUSTED_ORIGINS = []
 if scrf_subdomain := os.getenv("SCRF_SUBDOMAIN"):
     CSRF_TRUSTED_ORIGINS += [f"http://{scrf_subdomain}", f"https://{scrf_subdomain}"]
 
-
 # CORS_HEADERS
 cors_allow_headers = os.getenv("CORS_ALLOW_HEADERS")
 CORS_ALLOW_HEADERS = cors_allow_headers.split(",") if cors_allow_headers else ["*"]
@@ -44,7 +43,6 @@ CORS_ALLOW_HEADERS = cors_allow_headers.split(",") if cors_allow_headers else ["
 CORS_ORIGIN_ALLOW_ALL = os.getenv("CORS_ORIGIN_ALLOW_ALL", "False") == "True"
 
 CORS_ALLOW_CREDENTIALS = os.getenv("CORS_ALLOW_CREDENTIALS", "False") == "True"
-
 
 # Application definition
 
@@ -192,7 +190,7 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
-#    'COERCE_DECIMAL_TO_STRING': False,
+    'COERCE_DECIMAL_TO_STRING': False,
 }
 
 SIMPLE_JWT = {
@@ -226,7 +224,6 @@ AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 AWS_S3_ENDPOINT_URL = "https://storage.yandexcloud.net"
 AWS_S3_REGION_NAME = "storage"
 
-
 # Email
 EMAIL_BACKEND = (
     "django.core.mail.backends.smtp.EmailBackend"
@@ -239,7 +236,6 @@ EMAIL_USE_SSL = False
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-
 
 # Logging
 LOGGING = {
