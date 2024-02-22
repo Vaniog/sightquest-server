@@ -199,5 +199,5 @@ class GameConsumer(WebsocketConsumer):
         )
 
     def refresh_player(self):
-        self.user.refresh_from_db()
-        self.player.refresh_from_db()
+        self.user = User.objects.filter(id=self.user.id).first()
+        self.player = Player.objects.filter(game=self.game_manager.game, user=self.user).first()
