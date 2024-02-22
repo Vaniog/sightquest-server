@@ -199,4 +199,5 @@ class GameConsumer(WebsocketConsumer):
         )
 
     def refresh_player(self):
+        self.user.refresh_from_db()
         self.player.refresh_from_db()
