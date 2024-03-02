@@ -119,6 +119,7 @@ class GameSettingsQuestTaskSerializer(serializers.ModelSerializer):
     title = serializers.CharField(source='quest_task.title', read_only=True)
     description = serializers.CharField(source='quest_task.description', read_only=True)
     quest_point = serializers.PrimaryKeyRelatedField(source='quest_task.quest_point', read_only=True)
+    id = serializers.IntegerField(source="quest_task.id", read_only=True)
 
     class Meta:
         model = GameSettingsQuestTask
@@ -156,6 +157,7 @@ class GameSettingsQuestPointSerializer(serializers.ModelSerializer):
     city = serializers.CharField(source='quest_point.city', read_only=True)
     tasks = GameSettingsQuestTaskSerializer(many=True, read_only=True)
     image = serializers.ImageField(source="quest_point.image", read_only=True)
+    id = serializers.IntegerField(source="quest_point.id", read_only=True)
 
     class Meta:
         model = GameSettingsQuestPoint
