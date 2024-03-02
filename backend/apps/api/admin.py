@@ -11,7 +11,7 @@ from .models import (
     GameSettings,
     Game,
     Player,
-    GameQuestTask, PlayerTaskCompletion, Route
+    PlayerTaskCompletion, Route
 )
 
 
@@ -23,11 +23,6 @@ class GamePhotoInline(admin.TabularInline):
 
 class PlayerInline(admin.TabularInline):
     model = Player
-    extra = 1
-
-
-class GameQuestTaskInline(admin.TabularInline):
-    model = GameQuestTask
     extra = 1
 
 
@@ -88,7 +83,7 @@ class GameSettingsAdmin(admin.ModelAdmin):
     list_display = ('mode', 'duration')  # Поля, которые будут отображаться в списке объектов
     search_fields = ('mode',)  # Поля, по которым можно производить поиск
     ordering = ('mode',)  # Сортировка
-    inlines = [GameQuestTaskInline]
+    inlines = []
 
 
 @admin.register(Game)

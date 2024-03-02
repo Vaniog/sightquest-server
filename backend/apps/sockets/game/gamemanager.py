@@ -4,7 +4,8 @@ import secrets
 from django.utils import timezone
 
 from apps.api.serializers import GameSerializer
-from apps.api.models import Game, Coordinate, Player, GameQuestTask, QuestTask, PlayerTaskCompletion, GamePhoto
+from apps.api.models import Game, Coordinate, Player, GameSettingsQuestPoint, GameSettingsQuestTask, QuestTask, \
+    PlayerTaskCompletion, GamePhoto, QuestPoint
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -50,13 +51,7 @@ class GameManager:
             player.save()
         self.refresh_from_db()
 
-    def task2game_task(self, quest_task: QuestTask) -> GameQuestTask:
-        return GameQuestTask.objects.filter(
-            settings__game=self.game,
-            quest_task=quest_task
-        ).first()
-
-    def complete_task(self, player: Player, game_task: GameQuestTask, game_photo: GamePhoto):
+    def complete_task(self, player: Player, game_task: GameSettingsQuestTask, game_photo: GamePhoto):
         if player is None or game_task is None or game_photo is None:
             raise ValueError("Some data does not exists")
         PlayerTaskCompletion(
@@ -119,19 +114,38 @@ class GameManager:
             task_ids: list[int]
     ):
         self.game.settings.duration = duration
-        self.game.settings.tasks.clear()
+        GameSettingsQuestPoint.objects.filter(settings=self.game.settings).delete()
         for task_id in task_ids:
-            try:
-                game_quest_task = GameQuestTask(
-                    settings=self.game.settings,
-                    quest_task_id=task_id
-                )
-            except QuestTask.DoesNotExist:
-                raise ValueError("Some task does not exists")
-            game_quest_task.save()
+            quest_task: QuestTask = QuestTask.objects.filter(id=task_id).first()
+            if quest_task is None:
+                self.refresh_from_db()
+                raise ValueError(f"Task with id {task_id} does not exists")
+            self.add_quest_task(quest_task)
 
         self.game.settings.save()
         self.refresh_from_db()
+
+    def add_quest_task(self, quest_task: QuestTask):
+        quest_point: QuestPoint = quest_task.quest_point
+
+        game_quest_point = GameSettingsQuestPoint.objects.filter(
+            settings=self.game.settings,
+            quest_point=quest_point
+        ).first()
+
+        if game_quest_point is None:
+            game_quest_point = GameSettingsQuestPoint(
+                settings=self.game.settings,
+                quest_point=quest_point
+            )
+            game_quest_point.save()
+
+        game_quest_task = GameSettingsQuestTask(
+            settings=self.game.settings,
+            game_quest_point=game_quest_point,
+            quest_task=quest_task
+        )
+        game_quest_task.save()
 
 
 class GameManagerHolder:

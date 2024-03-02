@@ -16,6 +16,8 @@ from .models import (
     QuestPoint,
     QuestTask,
     Route,
+    GameSettingsQuestPoint,
+    GameSettingsQuestTask
 )
 
 User = get_user_model()
@@ -67,19 +69,6 @@ class CoordinatesSerializer(serializers.ModelSerializer):
         fields = ("latitude", "longitude")
 
 
-class SettingsSerializer(serializers.ModelSerializer):
-    # tasks = QuestTaskSerializer(many=True)
-    quest_points = serializers.SerializerMethodField()
-
-    def get_quest_points(self, obj):
-        quest_points = set([task.quest_point for task in obj.tasks.all()])
-        return QuestPointSerializer(quest_points, many=True).data
-
-    class Meta:
-        model = GameSettings
-        fields = ["mode", "duration", "quest_points"]
-
-
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -91,7 +80,7 @@ class PlayerTaskCompletionSerializer(serializers.ModelSerializer):
     photo = serializers.SerializerMethodField()
 
     def get_task_id(self, obj):
-        return obj.game_task.quest_task.id
+        return obj.game_task.id
 
     def get_photo(self, obj):
         return obj.photo.image.url
@@ -110,9 +99,80 @@ class PlayerSerializer(serializers.ModelSerializer):
         fields = ["user", "role", "completed", "secret"]
 
 
+class QuestTaskSerializer(serializers.ModelSerializer):
+    quest_point = serializers.PrimaryKeyRelatedField(queryset=QuestPoint.objects.all(), write_only=True)
+
+    class Meta:
+        model = QuestTask
+        fields = ("id", "title", "description", "quest_point")
+        extra_kwargs = {
+            'quest_point': {'write_only': True},
+        }
+
+    def create(self, validated_data):
+        quest_point = validated_data.pop("quest_point")
+        quest_task = QuestTask.objects.create(quest_point=quest_point, **validated_data)
+        return quest_task
+
+
+class GameSettingsQuestTaskSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(source='quest_task.title', read_only=True)
+    description = serializers.CharField(source='quest_task.description', read_only=True)
+    quest_point = serializers.PrimaryKeyRelatedField(source='quest_task.quest_point', read_only=True)
+
+    class Meta:
+        model = GameSettingsQuestTask
+        fields = ("id", "title", "description", "quest_point")
+
+
+class QuestPointSerializer(serializers.ModelSerializer):
+    location = CoordinatesSerializer()
+    tasks = QuestTaskSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = QuestPoint
+        fields = ("id", "title", "description", "location", "image", "city", "tasks")
+
+    def to_representation(self, instance):
+        representation = super(QuestPointSerializer, self).to_representation(instance)
+        representation["image"] = instance.image.url if instance.image else None
+        return representation
+
+    def create(self, validated_data):
+        location_data = validated_data.pop("location")
+        location_serializer = CoordinatesSerializer(data=location_data)
+        location_serializer.is_valid(raise_exception=True)
+        location = location_serializer.save()
+
+        quest_point = QuestPoint.objects.create(location=location, **validated_data)
+
+        return quest_point
+
+
+class GameSettingsQuestPointSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(source='quest_point.title', read_only=True)
+    description = serializers.CharField(source='quest_point.description', read_only=True)
+    location = CoordinatesSerializer(source='quest_point.location', read_only=True)
+    city = serializers.CharField(source='quest_point.city', read_only=True)
+    tasks = GameSettingsQuestTaskSerializer(many=True, read_only=True)
+    image = serializers.ImageField(source="quest_point.image", read_only=True)
+
+    class Meta:
+        model = GameSettingsQuestPoint
+        fields = ("id", "title", "description", "location", "image", "city", "tasks")
+
+
+class GameSettingsSerializer(serializers.ModelSerializer):
+    quest_points = GameSettingsQuestPointSerializer(source="game_quest_points", many=True)
+
+    class Meta:
+        model = GameSettings
+        fields = ["mode", "duration", "quest_points"]
+
+
 class GameSerializer(serializers.ModelSerializer):
     players = PlayerSerializer(many=True)
-    settings = SettingsSerializer()
+    settings = GameSettingsSerializer()
     host_username = serializers.SerializerMethodField()
 
     class Meta:
@@ -145,46 +205,6 @@ class GameSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
-
-
-class QuestTaskSerializer(serializers.ModelSerializer):
-    quest_point = serializers.PrimaryKeyRelatedField(queryset=QuestPoint.objects.all(), write_only=True)
-
-    class Meta:
-        model = QuestTask
-        fields = ("id", "title", "description", "quest_point")
-        extra_kwargs = {
-            'quest_point': {'write_only': True},
-        }
-
-    def create(self, validated_data):
-        quest_point = validated_data.pop("quest_point")
-        quest_task = QuestTask.objects.create(quest_point=quest_point, **validated_data)
-        return quest_task
-
-
-class QuestPointSerializer(serializers.ModelSerializer):
-    location = CoordinatesSerializer()
-    tasks = QuestTaskSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = QuestPoint
-        fields = ("id", "title", "description", "location", "image", "city", "tasks")
-
-    def to_representation(self, instance):
-        representation = super(QuestPointSerializer, self).to_representation(instance)
-        representation["image"] = instance.image.url if instance.image else None
-        return representation
-
-    def create(self, validated_data):
-        location_data = validated_data.pop("location")
-        location_serializer = CoordinatesSerializer(data=location_data)
-        location_serializer.is_valid(raise_exception=True)
-        location = location_serializer.save()
-
-        quest_point = QuestPoint.objects.create(location=location, **validated_data)
-
-        return quest_point
 
 
 class RouteSerializer(serializers.ModelSerializer):

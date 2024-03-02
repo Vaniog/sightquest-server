@@ -87,7 +87,6 @@ class GameSettings(models.Model):
     ]
     mode = models.CharField(choices=MODE_CHOICES, max_length=50, default="BASE")
     duration = models.DurationField(default=timedelta(hours=1))
-    tasks = models.ManyToManyField(QuestTask, through="GameQuestTask")
 
     def __str__(self):
         return f"{self.mode}, Duration: {self.duration}"
@@ -169,15 +168,19 @@ class GamePhoto(models.Model):
     upload_time = models.DateTimeField(auto_now_add=True)
 
 
-# Модель для заданий внутри игры
-class GameQuestTask(models.Model):
+class GameSettingsQuestPoint(models.Model):
+    settings = models.ForeignKey(GameSettings, on_delete=models.CASCADE, related_name="game_quest_points")
+    quest_point = models.ForeignKey(
+        QuestPoint, on_delete=models.CASCADE
+    )
+
+
+class GameSettingsQuestTask(models.Model):
     settings = models.ForeignKey(GameSettings, on_delete=models.CASCADE)
+    game_quest_point = models.ForeignKey(GameSettingsQuestPoint, on_delete=models.CASCADE, related_name="tasks")
     quest_task = models.ForeignKey(
         QuestTask, on_delete=models.CASCADE
     )
-
-    def __str__(self):
-        return f"{str(self.settings.game)} - {self.quest_task}"
 
 
 # Модель для выполнения задачи игроком
@@ -188,7 +191,7 @@ class PlayerTaskCompletion(models.Model):
         related_name="completed",
     )
     game_task = models.ForeignKey(
-        GameQuestTask, on_delete=models.CASCADE, related_name="task_completions"
+        GameSettingsQuestTask, on_delete=models.CASCADE, related_name="task_completions"
     )
     completed_at = models.DateTimeField(auto_now_add=True)
     photo = models.ForeignKey(GamePhoto, on_delete=models.CASCADE, related_name="task_completion")

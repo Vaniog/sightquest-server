@@ -7,7 +7,7 @@ django.setup()
 
 import json
 
-from apps.api.models import Player, GameQuestTask, GamePhoto
+from apps.api.models import Player, GamePhoto, GameSettingsQuestTask
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from django.contrib.auth import get_user_model
@@ -145,9 +145,8 @@ class GameConsumer(WebsocketConsumer):
         photo_id = int(data_json["photo_id"])
         game_photo: GamePhoto = GamePhoto.objects.filter(id=photo_id).first()
 
-        game_task = GameQuestTask.objects.filter(
-            settings__game=self.game_manager.game,
-            quest_task_id=task_id
+        game_task = GameSettingsQuestTask.objects.filter(
+            id=task_id
         ).first()
 
         self.game_manager.complete_task(
