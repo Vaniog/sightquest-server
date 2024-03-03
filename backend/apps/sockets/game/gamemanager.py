@@ -51,13 +51,7 @@ class GameManager:
             player.save()
         self.refresh_from_db()
 
-    def complete_task(self, player: Player, quest_task: QuestTask, game_photo: GamePhoto):
-        if quest_task is None:
-            raise ValueError("Some data does not exists")
-        game_task = GameSettingsQuestTask.objects.filter(
-            quest_task_id=quest_task.id
-        ).first()
-
+    def complete_task(self, player: Player, game_task: GameSettingsQuestTask, game_photo: GamePhoto):
         if player is None or game_task is None or game_photo is None:
             raise ValueError("Some data does not exists")
         PlayerTaskCompletion(

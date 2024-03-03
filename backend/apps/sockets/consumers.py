@@ -145,13 +145,14 @@ class GameConsumer(WebsocketConsumer):
         photo_id = int(data_json["photo_id"])
         game_photo: GamePhoto = GamePhoto.objects.filter(id=photo_id).first()
 
-        quest_task: QuestTask = QuestTask.objects.filter(
-            id=task_id
+        game_task: GameSettingsQuestTask = GameSettingsQuestTask.objects.filter(
+            settings=self.game_manager.game.settings,
+            quest_task_id=task_id
         ).first()
 
         self.game_manager.complete_task(
             player=self.player,
-            quest_task=quest_task,
+            game_task=game_task,
             game_photo=game_photo
         )
 
