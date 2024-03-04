@@ -1,15 +1,16 @@
 from django.conf import settings
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
-from .serializers import MailingSerializerWriteOnly, MailingSerializerReadOnly
-from .models import Mailing
-from .tasks import send_mail
 from django.urls import reverse
 from rest_framework import generics
 
-from .models import Subscriber
-from .serializers import SubscriberSerializer
-from .tasks import send_mailing
+from .models import Mailing, Subscriber
+from .serializers import (
+    MailingSerializerReadOnly,
+    MailingSerializerWriteOnly,
+    SubscriberSerializer,
+)
+from .tasks import send_mail, send_mailing
 
 
 class MailingCreateView(generics.CreateAPIView):
@@ -18,7 +19,7 @@ class MailingCreateView(generics.CreateAPIView):
 
     def perform_create(self, serializer: MailingSerializerWriteOnly):
         mailing = serializer.save()
-        emails: list = serializer.validated_data.get('emails')
+        emails: list = serializer.validated_data.get("emails")
         send_mailing.delay(emails, mailing.id)
 
 
@@ -56,6 +57,7 @@ def mailing_admin(request):
             "site_settings": settings.JAZZMIN_SETTINGS,
             "change_user_url": change_user_url,
             "admin_url": reverse("admin:index"),
+            "subscribers": Subscriber.objects.all(),
         }
 
         return render(request, "mailer-admin/send-mail-page.html", content)

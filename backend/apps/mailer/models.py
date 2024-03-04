@@ -21,8 +21,10 @@ class Mailing(models.Model):
     recipients = models.ManyToManyField(Subscriber, related_name="mailings")
     mail = models.OneToOneField(Mail, related_name="mailing", on_delete=models.CASCADE)
     STATUS_CHOICES = [
-        ('PROCESSING', 'Processing'),
-        ('SUCCEEDED', 'Succeeded'),
-        ('FAILED', 'Failed')
+        ("PROCESSING", "Processing"),
+        ("SUCCEEDED", "Succeeded"),
+        ("FAILED", "Failed"),
     ]
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PROCESSING')
+    status = models.CharField(
+        max_length=10, choices=STATUS_CHOICES, default="PROCESSING"
+    )

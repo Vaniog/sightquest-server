@@ -1,9 +1,11 @@
-from celery import shared_task
-from django.core.mail import send_mail as django_send_mail
-from django.conf import settings
-from bs4 import BeautifulSoup
-from .models import Mailing
 from smtplib import SMTPException
+
+from bs4 import BeautifulSoup
+from celery import shared_task
+from django.conf import settings
+from django.core.mail import send_mail as django_send_mail
+
+from .models import Mailing
 
 
 @shared_task
@@ -11,7 +13,7 @@ def send_mailing(emails: list, mailing_id: int):
     mailing: Mailing = Mailing.objects.filter(id=mailing_id).first()
     mail = mailing.mail
     html_message = mail.html_message
-    soup = BeautifulSoup(html_message, 'html.parser')
+    soup = BeautifulSoup(html_message, "html.parser")
     html_message = str(soup)
 
     try:
@@ -34,7 +36,7 @@ def send_mailing(emails: list, mailing_id: int):
 @shared_task
 def send_mail(emails: list, mail: dict):
     html_message = mail.get("html_message")
-    soup = BeautifulSoup(html_message, 'html.parser')
+    soup = BeautifulSoup(html_message, "html.parser")
     html_message = str(soup)
     print(html_message)
 

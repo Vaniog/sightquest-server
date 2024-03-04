@@ -27,76 +27,48 @@
   <div class="mailing-lower-section">
     <div id="filters" class="mailing-filters">
       <button id="selectAll">Выбрать все</button>
-      <div>
-        <label for="inGameFilter">Показать только в игре:</label>
-        <input type="checkbox" id="inGameFilter" onchange="filterTable()" />
-      </div>
     </div>
 
-    <form id="mailingListForm">
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Выбрать</th>
-              <th>Адрес электронной почты</th>
-              <th>В игре</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                <input
-                  type="checkbox"
-                  name="email"
-                  value="email1@example.com"
-                />
-              </td>
-              <td>email1@example.com</td>
-              <td><input type="checkbox" name="inGame" checked /></td>
-            </tr>
-            <tr>
-              <td>
-                <input
-                  type="checkbox"
-                  name="email"
-                  value="email2@example.com"
-                />
-              </td>
-              <td>email2@example.com</td>
-              <td><input type="checkbox" name="inGame" /></td>
-            </tr>
-            <tr>
-              <td>
-                <input
-                  type="checkbox"
-                  name="email"
-                  value="shram.monolit@mail.ru"
-                />
-              </td>
-              <td>shram.monolit@mail.ru</td>
-              <td><input type="checkbox" name="inGame" /></td>
-            </tr>
-            <tr>
-              <td>
-                <input
-                  type="checkbox"
-                  name="email"
-                  value="forvantar@gmail.com"
-                />
-              </td>
-              <td>forvantar@gmail.com</td>
-              <td><input type="checkbox" name="inGame" /></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </form>
+    {% if subscribers %}
+      <form id="mailingListForm">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Выбрать</th>
+                <th>Адрес электронной почты</th>
+                <th>Telegram</th>
+                <th>Одобрено</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for subscriber in subscribers %}
+              <tr>
+                <td>
+                  <input
+                    type="checkbox"
+                    name="email"
+                    value="{{subscriber.email}}"
+                  />
+                </td>
+                <td>{{subscriber.email}}</td>
+                <td>{{subscriber.telegram}}</td>
+                <td>{{subscriber.approved|yesno:"Да,Нет"}}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </form>
+    {% else %}
+      <p>Подписчики отсутствуют.</p>
+    {% endif %}
+
   </div>
 </div>
 
 <script type="text/javascript">
-  var sendMailingUrl = "{% url 'send-mailing' %}";
+  var sendMailingUrl = "{% url 'send-mail' %}";
 </script>
 
 {% endblock %}

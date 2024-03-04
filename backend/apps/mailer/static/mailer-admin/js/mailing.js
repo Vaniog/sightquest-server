@@ -46,19 +46,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-function filterTable() {
-  const inGameFilter = document.getElementById("inGameFilter").checked;
-  const tableRows = document.querySelectorAll("#mailingListForm tbody tr");
-
-  tableRows.forEach((row) => {
-    const inGameStatus = row.querySelector('input[name="inGame"]').checked;
-    if (inGameFilter && !inGameStatus) {
-      row.style.display = "none";
-    } else {
-      row.style.display = "";
-    }
-  });
-}
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("selectAll").addEventListener("click", () => {

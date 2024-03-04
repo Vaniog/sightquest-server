@@ -1,7 +1,8 @@
-from rest_framework.validators import ValidationError
-from rest_framework import serializers
-from .models import Subscriber, Mail, Mailing
 from django.conf import settings
+from rest_framework import serializers
+from rest_framework.validators import ValidationError
+
+from .models import Mail, Mailing, Subscriber
 
 
 class SubscriberSerializer(serializers.ModelSerializer):
@@ -28,7 +29,9 @@ class MailingSerializerReadOnly(serializers.ModelSerializer):
 
 class MailingSerializerWriteOnly(serializers.ModelSerializer):
     mail = MailSerializer(many=False, write_only=True, required=True)
-    emails = serializers.ListField(child=serializers.EmailField(), required=True, write_only=True)
+    emails = serializers.ListField(
+        child=serializers.EmailField(), required=True, write_only=True
+    )
 
     class Meta:
         model = Mailing
@@ -38,12 +41,12 @@ class MailingSerializerWriteOnly(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data["from_email"] = settings.EMAIL_HOST_USER
 
-        mail_data = validated_data.pop('mail', None)
-        emails_data = validated_data.pop('emails', None)
+        mail_data = validated_data.pop("mail", None)
+        emails_data = validated_data.pop("emails", None)
 
         mail_instance = Mail.objects.create(**mail_data)
 
-        validated_data['mail'] = mail_instance
+        validated_data["mail"] = mail_instance
 
         mailing_instance = Mailing.objects.create(**validated_data)
 
