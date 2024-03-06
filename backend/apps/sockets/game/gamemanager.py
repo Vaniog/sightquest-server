@@ -1,12 +1,15 @@
 import datetime
+import json
 import secrets
 
 from django.utils import timezone
 
 from apps.api.serializers import GameSerializer
-from apps.api.models import Game, Coordinate, Player, GameSettingsQuestPoint, GameSettingsQuestTask, QuestTask, \
-    PlayerTaskCompletion, GamePhoto, QuestPoint
+from apps.api.models import Game, Player, GameSettingsQuestPoint, GameSettingsQuestTask, QuestTask, \
+    PlayerTaskCompletion, GamePhoto
 from django.contrib.auth import get_user_model
+
+from apps.sockets.game.dto import *
 
 User = get_user_model()
 
@@ -34,14 +37,14 @@ class GameManager:
         self.game.refresh_from_db()
         self.game_json = GameSerializer(self.game).data
 
-    def set_player_coordinates(self, player_id: int, coordinates: Coordinate):
-        self.player_coordinates[player_id] = coordinates
-
     def process_to_json(self):
         for player in self.game_json["players"]:
             player["coordinates"] = self.player_coordinates.get(player["user"]["id"], None) \
                                     or {"latitude": "0", "longitude": "0"}
         return self.game_json
+
+    def set_player_coordinates(self, player_id: int, coordinates: CoordinateDTO):
+        self.player_coordinates[player_id] = coordinates.model_dump()
 
     def add_player(self, user: User):
         if self.game.players.filter(user=user).count() == 0:
@@ -51,14 +54,22 @@ class GameManager:
             player.save()
         self.refresh_from_db()
 
-    def complete_task(self, player: Player, game_task: GameSettingsQuestTask, game_photo: GamePhoto):
+    def complete_task(self, event: TaskCompletedDTO):
+        player = Player.objects.filter(user_id=event.user.id, game=self.game).first()
+        game_task = GameSettingsQuestTask.objects.filter(
+            task_id=event.task_id, settings=self.game.settings
+        ).first()
+        game_photo = GamePhoto.objects.filter(id=event.photo_id)
+
         if player is None or game_task is None or game_photo is None:
             raise ValueError("Some data does not exists")
+
         PlayerTaskCompletion(
             player=player,
             game_task=game_task,
             photo=game_photo
         ).save()
+
         self.refresh_from_db()
 
     def get_player_by_secret(self, secret: str) -> Player:
@@ -67,7 +78,13 @@ class GameManager:
             raise ValueError("Person with this code does not exists")
         return player
 
-    def catch_player(self, catcher: Player, runner: Player):
+    def player_by_user_id(self, user_id: int) -> Player:
+        return Player.objects.filter(user_id=user_id, game=self.game).first()
+
+    def catch_player(self, event: PlayerCaughtDTO):
+        catcher = self.player_by_user_id(event.user.id)
+        runner = Player.objects.filter(game=self.game, secret=event.secret).first()
+
         if catcher.role != "CATCHER":
             raise ValueError("Person who tries to catch is not a catcher")
         if runner.role != "RUNNER":
@@ -110,23 +127,25 @@ class GameManager:
     @lobby_required
     def update_settings(
             self,
-            duration: datetime.timedelta,
-            task_ids: list[int]
+            settings_dto: SettingsDTO
     ):
-        self.game.settings.duration = duration
+        self.game.settings.duration = settings_dto.duration
+
         GameSettingsQuestPoint.objects.filter(settings=self.game.settings).delete()
-        for task_id in task_ids:
-            quest_task: QuestTask = QuestTask.objects.filter(id=task_id).first()
-            if quest_task is None:
-                self.refresh_from_db()
-                raise ValueError(f"Task with id {task_id} does not exists")
-            self.add_quest_task(quest_task)
+
+        for quest_point in settings_dto.quest_points:
+            for task in quest_point.tasks:
+                self.add_quest_task(task)
 
         self.game.settings.save()
         self.refresh_from_db()
 
-    def add_quest_task(self, quest_task: QuestTask):
-        quest_point: QuestPoint = quest_task.quest_point
+    def add_quest_task(self, task_dto: QuestTaskDTO):
+        quest_task: QuestTask = QuestTask.objects.filter(id=task_dto.id).first()
+        if quest_task is None:
+            raise ValueError(f"Task with id {task_dto.id} does not exists")
+
+        quest_point = quest_task.quest_point
 
         game_quest_point = GameSettingsQuestPoint.objects.filter(
             settings=self.game.settings,

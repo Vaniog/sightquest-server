@@ -74,6 +74,7 @@
 <script>
     var currentGameId = 0;
     var socket = null
+    var user = {}
 
     function connectWebSocket() {
         socket = new WebSocket(
@@ -115,9 +116,13 @@
 
     function authorize() {
         var userId = $("#userId").val();
+        user = {
+            "id": userId
+        }
         if (userId) {
             socket.send(
                 JSON.stringify({
+                    "user": user,
                     "event": "authorization",
                     "token": userId
                 })
@@ -134,7 +139,7 @@
         socket.send(
             JSON.stringify({
                 "event": "location_update",
-                "user_id": $("#userId").val(),
+                "user": user,
                 "coordinates": {
                     latitude, longitude
                 }
@@ -147,6 +152,7 @@
         var photo_id = $("#taskPhotoId").val();
         socket.send(
             JSON.stringify({
+                "user": user,
                 "event": "task_completed",
                 "task_id": task_id,
                 "photo_id": photo_id
@@ -158,6 +164,7 @@
         var catchPlayerSecret = $("#catchPlayerSecret").val();
         socket.send(
             JSON.stringify({
+                "user": user,
                 "event": "player_caught",
                 "secret": catchPlayerSecret
             })
@@ -167,6 +174,7 @@
     function startGame() {
         socket.send(
             JSON.stringify({
+                "user": user,
                 "event": "start_game"
             })
         )
@@ -178,12 +186,16 @@
         if ($("#questTasks").val().length === 0) {
             quest_task_ids = []
         }
-        var quest_point = {"tasks": []}
+        var quest_point = {
+            "id": 1,
+            "tasks": []
+        }
         quest_task_ids.forEach((quest_task_id) => {
             quest_point["tasks"].push({"id": quest_task_id})
         })
         socket.send(
             JSON.stringify({
+                "user": user,
                 "event": "settings_update",
                 "settings": {
                     "duration": duration,
@@ -203,6 +215,7 @@
     function getGameState() {
         socket.send(
             JSON.stringify({
+                "user": user,
                 "event": "get_game_state"
             })
         )
