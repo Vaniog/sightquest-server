@@ -111,7 +111,7 @@
 
     function connectWebSocket() {
         socket = new WebSocket(
-            `ws://${window.location.host}/ws/game/${currentGameId}/`
+            `wss://${window.location.host}/ws/game/${currentGameId}/`
         );
         if (!currentGameId) {
             console.error("Game ID is not set");
