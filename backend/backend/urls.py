@@ -31,8 +31,8 @@ urlpatterns = [
     path("api/mailing-admin/logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("api/", include("apps.api.urls")),
     path("api/", include("apps.mailer.urls")),
-    path("game/", game_socket),
-    path("game/v2/", game_v2),
+    path("api/game/", game_socket),
+    path("api/game/v2/", game_v2),
 ]
 
 swagger_patterns = [
