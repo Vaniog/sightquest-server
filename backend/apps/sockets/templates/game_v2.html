@@ -12,8 +12,9 @@
 </head>
 <body>
 <div class="container-fluid main mb-5 row mt-4">
-    <div class="col-md-3">
+    <div class="col-md-4">
         <h3>Game</h3>
+        Wss: <input type="checkbox" id="isWss" class="form-check-input"/>
         <div class="mb-3">
             <label for="gameId" class="form-label">Connect to Game WS</label>
             <div class="input-group">
@@ -97,7 +98,7 @@
             <button id="sendCustomData" class="btn btn-info mt-2" value='{"event":"Hi!"}'>Send</button>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
         <h3>Messages</h3>
         <div id="messages" class="w-100 border rounded-2 h-100 p-2"></div>
     </div>
@@ -110,8 +111,9 @@
     var user = {}
 
     function connectWebSocket() {
+        var webSocketPref = $("#isWss").is(':checked') ? 'wss' : 'ws'
         socket = new WebSocket(
-            `wss://${window.location.host}/ws/game/${currentGameId}/`
+            webSocketPref + `://${window.location.host}/ws/game/${currentGameId}/`
         );
         if (!currentGameId) {
             console.error("Game ID is not set");
