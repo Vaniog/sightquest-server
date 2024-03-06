@@ -1,5 +1,5 @@
 from apps.mailer.views import mailing_admin
-from apps.sockets.views import game_socket
+from apps.sockets.views import game_socket, game_v2
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
@@ -32,6 +32,7 @@ urlpatterns = [
     path("api/", include("apps.api.urls")),
     path("api/", include("apps.mailer.urls")),
     path("game/", game_socket),
+    path("game/v2/", game_v2),
 ]
 
 swagger_patterns = [
