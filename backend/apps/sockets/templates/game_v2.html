@@ -7,12 +7,30 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
     <script src="https://unpkg.com/@alenaksu/json-viewer@2.0.0/dist/json-viewer.bundle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.3.5/split.min.js"></script>
     <style>
+        .split {
+            display: flex;
+            flex-direction: row;
+        }
+
+        .gutter {
+            background-repeat: no-repeat;
+        }
+
+        .gutter.gutter-horizontal {
+            padding: 0 !important;
+            width: 0 !important;
+            background-color: #464d54;
+            border: 0.1em solid #464d54;
+            border-radius: 0.2em;
+            cursor: col-resize;
+        }
     </style>
 </head>
 <body>
-<div class="container-fluid main mb-5 row mt-4">
-    <div class="col-md-4">
+<section class="flex container-fluid main mb-5 row mt-4 flex-nowrap">
+    <div class="col-md-4" id="gameStateWindow">
         <h3>Game</h3>
         Wss: <input type="checkbox" id="isWss" class="form-check-input"/>
         <div class="mb-3">
@@ -24,7 +42,7 @@
         </div>
         <json-viewer id="gameStateJson"></json-viewer>
     </div>
-    <div class="col-md-5">
+    <div class="col-md-4" id="actionsWindow">
         <h3>Actions</h3>
 
         <div class="mb-3 d-flex flex-row align-items-center">
@@ -98,11 +116,13 @@
             <button id="sendCustomData" class="btn btn-info mt-2" value='{"event":"Hi!"}'>Send</button>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-4" id="messagesWindow">
         <h3>Messages</h3>
-        <div id="messages" class="w-100 border rounded-2 h-100 p-2"></div>
+        <div id="messages" class="w-100 border rounded-2 overflow-auto p-2"
+             style="height: 75vh; max-height: 75vh">
+        </div>
     </div>
-</div>
+</section>
 
 
 <script>
@@ -113,7 +133,8 @@
     function connectWebSocket() {
         var webSocketPref = $("#isWss").is(':checked') ? 'wss' : 'ws'
         socket = new WebSocket(
-            webSocketPref + `://${window.location.host}/ws/game/${currentGameId}/`
+            //webSocketPref + `://${window.location.host}/ws/game/${currentGameId}/`
+            webSocketPref + `://0.0.0.0/ws/game/${currentGameId}/`
         );
         if (!currentGameId) {
             console.error("Game ID is not set");
@@ -134,7 +155,15 @@
             } else if (data.event === "settings_update") {
                 getGameState()
             } else {
-                $("#messages").append("<json-viewer>" + JSON.stringify(data, null, 2) + "</json-viewer>");
+                const messages = $("#messages")
+                messages.append(
+                    "<div class='d-flex align-items-center'> " +
+                    "<i class='bi me-2 text-warning bi-arrow-down-circle'> </i>" +
+                    "<json-viewer class='rounded-1 m-1 p-2'>" + JSON.stringify(data, null, 2) + "</json-viewer>" +
+                    "</div>"
+                )
+
+                messages.scrollTop(messages.prop("scrollHeight"))
             }
         };
 
@@ -145,6 +174,18 @@
         socket.onerror = function (error) {
             console.error("WebSocket Error:", error);
         };
+    }
+
+    function socketSend(obj) {
+        const messages = $("#messages")
+        messages.append(
+            "<div class='d-flex align-items-center'> " +
+            "<i class='bi me-2 text-success bi-arrow-up-circle'> </i>" +
+            "<json-viewer class='rounded-1 m-1 p-2'>" + JSON.stringify(obj, null, 2) + "</json-viewer>" +
+            "</div>"
+        );
+        messages.scrollTop(messages.prop("scrollHeight"))
+        socket.send(JSON.stringify(obj))
     }
 
     let gameState = {};
@@ -169,13 +210,11 @@
             "id": userId
         }
         if (userId) {
-            socket.send(
-                JSON.stringify({
-                    "user": user,
-                    "event": "authorization",
-                    "token": userId
-                })
-            )
+            socketSend({
+                "user": user,
+                "event": "authorization",
+                "token": userId
+            })
         } else {
             console.error("User ID is required");
         }
@@ -185,48 +224,40 @@
     function sendCoords() {
         var latitude = $("#latitude").val();
         var longitude = $("#longitude").val();
-        socket.send(
-            JSON.stringify({
-                "event": "location_update",
-                "user": user,
-                "coordinates": {
-                    latitude, longitude
-                }
-            })
-        )
+        socketSend({
+            "event": "location_update",
+            "user": user,
+            "coordinates": {
+                latitude, longitude
+            }
+        })
     }
 
     function sendTaskCompleted() {
         var task_id = $("#taskId").val();
         var photo_id = $("#taskPhotoId").val();
-        socket.send(
-            JSON.stringify({
-                "user": user,
-                "event": "task_completed",
-                "task_id": task_id,
-                "photo_id": photo_id
-            })
-        )
+        socketSend({
+            "user": user,
+            "event": "task_completed",
+            "task_id": task_id,
+            "photo_id": photo_id
+        })
     }
 
     function catchPlayer() {
         var catchPlayerSecret = $("#catchPlayerSecret").val();
-        socket.send(
-            JSON.stringify({
-                "user": user,
-                "event": "player_caught",
-                "secret": catchPlayerSecret
-            })
-        )
+        socketSend({
+            "user": user,
+            "event": "player_caught",
+            "secret": catchPlayerSecret
+        })
     }
 
     function startGame() {
-        socket.send(
-            JSON.stringify({
-                "user": user,
-                "event": "start_game"
-            })
-        )
+        socketSend({
+            "user": user,
+            "event": "start_game"
+        })
     }
 
     function updateSettings() {
@@ -242,35 +273,36 @@
         quest_task_ids.forEach((quest_task_id) => {
             quest_point["tasks"].push({"id": quest_task_id})
         })
-        socket.send(
-            JSON.stringify({
-                "user": user,
-                "event": "settings_update",
-                "settings": {
-                    "duration": duration,
-                    "quest_points": [quest_point]
-                }
-            })
-        )
+        socketSend({
+            "user": user,
+            "event": "settings_update",
+            "settings": {
+                "duration": duration,
+                "quest_points": [quest_point]
+            }
+        })
     }
 
     function sendCustomData() {
-        var customData = $("#customData").val();
-        socket.send(
+        var customData = JSON.parse($("#customData").val());
+        socketSend(
             customData
         )
     }
 
     function getGameState() {
-        socket.send(
-            JSON.stringify({
-                "user": user,
-                "event": "get_game_state"
-            })
-        )
+        socketSend({
+            "user": user,
+            "event": "get_game_state"
+        })
     }
 
     $(document).ready(function () {
+        Split(
+            ['#gameStateWindow', '#actionsWindow', '#messagesWindow'], {
+                sizes: [30, 40, 30],
+            })
+
         $("#joinGame").click(joinGame);
         $("#authorize").click(authorize);
         $("#sendCoords").click(sendCoords);
