@@ -153,22 +153,23 @@
                 gameState = data.state
                 updateGameState()
             } else if (data.event === "settings_update") {
-                getGameState()
-            } else {
-                const messages = $("#messages")
-                var arrow = "<i class='bi me-2 text-warning bi-arrow-down-circle'> </i>"
-                if (data.event === "error") {
-                    arrow = "<i class='bi me-2 text-danger bi-exclamation-triangle'> </i>"
-                }
-                messages.append(
-                    "<div class='d-flex align-items-center'> " +
-                    arrow +
-                    "<json-viewer class='rounded-1 m-1 p-2'>" + JSON.stringify(data, null, 2) + "</json-viewer>" +
-                    "</div>"
-                )
-
-                messages.scrollTop(messages.prop("scrollHeight"))
+                gameState.settings = data.settings
+                updateGameState()
             }
+
+            const messages = $("#messages")
+            let arrow = "<i class='bi me-2 text-warning bi-arrow-down-circle'> </i>"
+            if (data.event === "error") {
+                arrow = "<i class='bi me-2 text-danger bi-exclamation-triangle'> </i>"
+            }
+            messages.append(
+                "<div class='d-flex align-items-center'> " +
+                arrow +
+                "<json-viewer class='rounded-1 m-1 p-2'>" + JSON.stringify(data, null, 2) + "</json-viewer>" +
+                "</div>"
+            )
+
+            messages.scrollTop(messages.prop("scrollHeight"))
         };
 
         socket.onclose = function (e) {
@@ -195,6 +196,7 @@
     let gameState = {};
 
     function updateGameState() {
+        document.querySelector("#gameStateJson").data = {}
         document.querySelector("#gameStateJson").data = gameState
     }
 
