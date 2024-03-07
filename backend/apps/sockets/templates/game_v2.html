@@ -133,8 +133,8 @@
     function connectWebSocket() {
         var webSocketPref = $("#isWss").is(':checked') ? 'wss' : 'ws'
         socket = new WebSocket(
-            //webSocketPref + `://${window.location.host}/ws/game/${currentGameId}/`
-            webSocketPref + `://0.0.0.0/ws/game/${currentGameId}/`
+            webSocketPref + `://${window.location.host}/ws/game/${currentGameId}/`
+            //webSocketPref + `://0.0.0.0/ws/game/${currentGameId}/`
         );
         if (!currentGameId) {
             console.error("Game ID is not set");
