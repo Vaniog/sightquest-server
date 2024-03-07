@@ -57,7 +57,7 @@ class GameManager:
     def complete_task(self, event: TaskCompletedDTO):
         player = Player.objects.filter(user_id=event.user.id, game=self.game).first()
         game_task = GameSettingsQuestTask.objects.filter(
-            task_id=event.task_id, settings=self.game.settings
+            quest_task_id=event.task_id, settings=self.game.settings
         ).first()
         game_photo = GamePhoto.objects.filter(id=event.photo_id)
 
