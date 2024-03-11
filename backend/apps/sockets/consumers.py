@@ -80,6 +80,8 @@ class GameConsumer(WebsocketConsumer):
             self.send_error_message(
                 f"You can't perform {event.event} event in {self.game_manager.game.state} state"
             )
+        except Exception as err:
+            self.send_uncaught_error_message(str(err))
 
     def on_receive_authorization(self, data_json):
         authorization = AuthorizationDTO.model_validate(data_json)
@@ -125,6 +127,13 @@ class GameConsumer(WebsocketConsumer):
     def send_error_message(self, message):
         self.send(json.dumps({
             "event": "error",
+            "message": message
+        }))
+
+    def send_uncaught_error_message(self, message):
+        self.send(json.dumps({
+            "event": "error",
+            "type": "uncaught!!!",
             "message": message
         }))
 

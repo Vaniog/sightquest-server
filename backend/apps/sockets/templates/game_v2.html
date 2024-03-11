@@ -131,20 +131,68 @@
     var socket = null
     var user = {}
 
+    function messagesLog(data) {
+        $("#messages").append(
+            "<div class='d-flex align-items-center'> " +
+            data +
+            "</div>"
+        )
+    }
+
+    function messagesLogError(data) {
+        let arrow = "<i class='bi me-2 text-danger bi-exclamation-triangle'> </i>"
+
+        $("#messages").append(
+            "<div class='d-flex align-items-center'> " +
+            arrow +
+            data +
+            "</div>"
+        )
+    }
+
+    function messagesLogSuccess(data) {
+        let arrow = "<i class='bi me-2 text-success bi-check'> </i>"
+
+        $("#messages").append(
+            "<div class='d-flex align-items-center'> " +
+            arrow +
+            data +
+            "</div>"
+        )
+    }
+
     function connectWebSocket() {
         var webSocketPref = $("#isWss").is(':checked') ? 'wss' : 'ws'
+
         socket = new WebSocket(
             webSocketPref + `://${window.location.host}/ws/game/${currentGameId}/`
             //webSocketPref + `://0.0.0.0/ws/game/${currentGameId}/`
         );
+
+
+        setTimeout(() => {
+            if (socket.readyState !== WebSocket.OPEN) {
+                messagesLogError("Connection error");
+            }
+        }, 1000)
+
+
+        socket.onerror = () => {
+            $("#messages").append("Connection error")
+        }
+
         if (!currentGameId) {
             console.error("Game ID is not set");
             return;
         }
 
-        socket.onopen = function (e) {
-            console.log("Connection established");
+        socket.onopen = () => {
+            messagesLogSuccess("Connection established")
         };
+
+        socket.onclose = () => {
+            $("#messages").append("Connection closed")
+        }
 
 
         socket.onmessage = function (e) {

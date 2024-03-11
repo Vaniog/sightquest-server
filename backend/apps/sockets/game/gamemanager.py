@@ -55,14 +55,15 @@ class GameManager:
         self.refresh_from_db()
 
     def complete_task(self, event: TaskCompletedDTO):
-        player = Player.objects.filter(user_id=event.user.id, game=self.game).first()
+        player = self.get_player_by_user_id(event.user.id)
         game_task = GameSettingsQuestTask.objects.filter(
             quest_task_id=event.task_id, settings=self.game.settings
         ).first()
+        if game_task is None:
+            raise ValueError(f"Task with id {event.task_id} does not exist")
         game_photo = GamePhoto.objects.filter(id=event.photo_id)
-
-        if player is None or game_task is None or game_photo is None:
-            raise ValueError("Some data does not exists")
+        if game_photo is None:
+            raise ValueError(f"Photo with id {event.photo_id} does not exist")
 
         PlayerTaskCompletion(
             player=player,
@@ -75,18 +76,21 @@ class GameManager:
     def get_player_by_secret(self, secret: str) -> Player:
         player = self.game.players.filter(secret=secret).first()
         if player is None:
-            raise ValueError("Person with this code does not exists")
+            raise ValueError(f"Person with code {secret} does not exist")
         return player
 
-    def player_by_user_id(self, user_id: int) -> Player:
-        return Player.objects.filter(user_id=user_id, game=self.game).first()
+    def get_player_by_user_id(self, user_id: int) -> Player:
+        player = Player.objects.filter(user_id=user_id, game=self.game).first()
+        if player is None:
+            raise ValueError(f"Person with id {user_id} is not in game, or doesn't exist")
+        return player
 
     def catch_player(self, event: PlayerCaughtDTO):
-        catcher = self.player_by_user_id(event.user.id)
-        runner = Player.objects.filter(game=self.game, secret=event.secret).first()
+        catcher = self.get_player_by_user_id(event.user.id)
+        runner = self.get_player_by_secret(event.secret)
 
         if catcher.role != "CATCHER":
-            raise ValueError("Person who tries to catch is not a catcher")
+            raise ValueError("You aren't a catcher")
         if runner.role != "RUNNER":
             raise ValueError("The person who you tries to catch is not a runner")
         self.make_roles_rotation()
