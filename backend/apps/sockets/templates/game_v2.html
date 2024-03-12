@@ -214,6 +214,9 @@
 
 
         socket.onmessage = function (e) {
+            if (isIntervalActive) {
+                return
+            }
             const data = JSON.parse(e.data);
             console.log("Message received:", data);
             if (data.event === "gamestate_update" || data.event === "get_gamestate") {
@@ -265,6 +268,10 @@
     }
 
     function socketSend(obj) {
+        socket.send(JSON.stringify(obj))
+        if (isIntervalActive) {
+            return
+        }
         const messages = $("#messages")
         const id = "message-" + messages.children().length
         messages.append(
@@ -277,7 +284,6 @@
             "</div>"
         );
         messages.scrollTop(messages.prop("scrollHeight"))
-        socket.send(JSON.stringify(obj))
     }
 
     let gameState = {};
