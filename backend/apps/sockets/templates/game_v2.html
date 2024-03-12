@@ -116,10 +116,20 @@
         <div class="mb-3">
             <label for="customData" class="form-label">Enter custom data:</label>
             <div class="input-group w-75">
-                <textarea class="form-control" id="customData" placeholder="Data"></textarea>
+                <textarea class="form-control" rows="5" id="customData" placeholder="Data"></textarea>
             </div>
-            <button id="sendCustomData" class="btn btn-info mt-2" value='{"event":"Hi!"}'>Send</button>
+
+            <div class="mt-2 row m-0">
+                <button id="sendCustomData" class="col-2 btn btn-info">Send</button>
+                <div class="col-4">
+                    <div class="input-group ms-1">
+                        <input type="text" class="form-control" id="interval" placeholder="1000"/>
+                        <button id="sendInterval" class="btn btn-info">Interval</button>
+                    </div>
+                </div>
+            </div>
         </div>
+
     </div>
     <div class="col-md-4" id="messagesWindow">
         <h3>Messages</h3>
@@ -366,6 +376,40 @@
         })
     }
 
+    var intervalSetInterval;
+    var isIntervalActive = false;
+
+    function sendInterval() {
+        let intervalValue = parseInt($("#interval").val());
+
+        toggleIntervalButton();
+
+        if (!isIntervalActive) {
+            intervalSetInterval = setInterval(function () {
+                var customData = JSON.parse($("#customData").val());
+                socketSend(customData);
+            }, intervalValue);
+
+            isIntervalActive = true;
+        } else {
+            clearInterval(intervalSetInterval);
+            isIntervalActive = false;
+        }
+    }
+
+    function toggleIntervalButton() {
+        // Toggle the button appearance based on the interval state
+        var intervalButton = $("#sendInterval");
+
+        if (isIntervalActive) {
+            intervalButton.removeClass("btn-danger").addClass("btn-info");
+            intervalButton.text("Interval");
+        } else {
+            intervalButton.removeClass("btn-info").addClass("btn-danger");
+            intervalButton.text("Stop");
+        }
+    }
+
     function sendCustomData() {
         var customData = JSON.parse($("#customData").val());
         socketSend(
@@ -395,6 +439,7 @@
         $("#getGameState").click(getGameState);
         $("#updateSettings").click(updateSettings);
         $("#startGame").click(startGame);
+        $("#sendInterval").click(sendInterval);
     });
 </script>
 </body>
