@@ -121,10 +121,12 @@
 
             <div class="mt-2 row m-0">
                 <button id="sendCustomData" class="col-2 btn btn-info">Send</button>
-                <div class="col-4">
+                <div class="col-5">
                     <div class="input-group ms-1">
                         <input type="text" class="form-control" id="interval" placeholder="1000"/>
                         <button id="sendInterval" class="btn btn-info">Interval</button>
+                        <input type="text" readonly class="form-control disabled text-info" id="intervalCount"
+                               value="0"/>
                     </div>
                 </div>
             </div>
@@ -174,6 +176,13 @@
             "</div>"
         )
     }
+
+
+    function increaseIntervalCount() {
+        const $intervalCount = $("#intervalCount")
+        $intervalCount.val(parseInt($intervalCount.val()) + 1)
+    }
+
 
     function connectWebSocket() {
         var webSocketPref = $("#isWss").is(':checked') ? 'wss' : 'ws'
@@ -392,7 +401,8 @@
 
         if (!isIntervalActive) {
             intervalSetInterval = setInterval(function () {
-                var customData = JSON.parse($("#customData").val());
+                var customData = JSON.parse($("#customData").val())
+                increaseIntervalCount()
                 socketSend(customData);
             }, intervalValue);
 
@@ -435,6 +445,8 @@
             ['#gameStateWindow', '#actionsWindow', '#messagesWindow'], {
                 sizes: [30, 40, 30],
             })
+
+        $("#intervalCount").val(0);
 
         $("#joinGame").click(joinGame);
         $("#authorize").click(authorize);
