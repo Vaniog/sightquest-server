@@ -43,8 +43,8 @@ class GameConsumer(WebsocketConsumer):
         data_json = json.loads(text_data)
         try:
             event: EventDTO = EventDTO.model_validate(data_json)
-        except ValueError:
-            self.send_error_message("Use event protocol")
+        except ValueError as err:
+            self.send_error_message(f"Use event protocol: {err}")
             return
 
         if event.event == "authorization":
