@@ -48,7 +48,10 @@ class GameConsumer(WebsocketConsumer):
             return
 
         if event.event == "authorization":
-            self.on_receive_authorization(data_json)
+            try:
+                self.on_receive_authorization(data_json)
+            except ValueError as err:
+                self.send_error_message(f"Use event protocol: {err}")
             self.group_broadcast({
                 "event": "gamestate_update",
                 "state": self.game_manager.process_to_json()
