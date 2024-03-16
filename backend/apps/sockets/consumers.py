@@ -40,8 +40,8 @@ class GameConsumer(WebsocketConsumer):
         self.send_status_message("connection succeeded")
 
     def receive(self, text_data):
-        data_json = json.loads(text_data)
         try:
+            data_json = json.loads(text_data)
             event: EventDTO = EventDTO.model_validate(data_json)
         except ValueError as err:
             self.send_error_message(f"Use event protocol: {err}")
