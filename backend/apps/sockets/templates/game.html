@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game Test</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        #messages {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 20px;
+            height: 300px;
+            overflow-y: scroll;
+        }
+    </style>
+</head>
+<body>
+<h1>Test Game WebSocket</h1>
+<div>
+    <label for="gameId">Connect to Game WS</label>
+    <input type="text" id="gameId" placeholder=" ID"/>
+    <button id="joinGame">Join Game</button>
+</div>
+<div>
+    <label for="userId">User token</label>
+    <input type="text" id="userId" placeholder=" ID"/>
+    <button id="authorize">Authorize</button>
+</div>
+<div>
+    <label for="latitude"></label><input type="text" id="latitude" placeholder="latitude"/>
+    <label for="longitude"></label><input type="text" id="longitude" placeholder="longitude"/>
+    <button id="sendCoords">Send coords</button>
+</div>
+<div>
+    <label for="taskPhotoId">Photo:</label>
+    <input type="text" id="taskPhotoId" placeholder="photo_id"/>
+    <label for="taskId">ID:</label>
+    <input type="text" id="taskId" placeholder="task id"/>
+    <button id="sendTaskCompleted">Send task completed</button>
+</div>
+<div>
+    <label for="catchPlayerSecret">Catch player:</label>
+    <input type="text" id="catchPlayerSecret" placeholder="secret"/>
+    <button id="catchPlayer">Catch</button>
+</div>
+<div>
+    Duration: <input type="text" id="duration" placeholder="01:00:00"/>
+    Quest tasks: <input type="text" id="questTasks" placeholder="1 2 3"/>
+    <button id="updateSettings">Update settings</button>
+</div>
+
+<div>
+    <button id="startGame">Start Game</button>
+</div>
+
+<div>
+    <button id="getGameState">Get Game State</button>
+</div>
+
+<div>
+    <label for="customData">Enter custom data:</label>
+    <input type="text" id="customData" placeholder="data"/>
+    <button id="sendCustomData" value='{"event":"Hi!"}'>Send</button>
+</div>
+
+
+<div>
+    <label for="subscribe">Subscribe:</label>
+    <input type="text" id="telegramSubscribe" placeholder="telegram"/>
+    <input type="text" id="emailSubscribe" placeholder="email"/>
+</div>
+
+<div id="messages"></div>
+
+<script>
+    var currentGameId = 0;
+    var socket = null
+    var user = {}
+
+    function connectWebSocket() {
+        socket = new WebSocket(
+            `ws://${window.location.host}/ws/game/${currentGameId}/`
+        );
+        if (!currentGameId) {
+            console.error("Game ID is not set");
+            return;
+        }
+
+        socket.onopen = function (e) {
+            console.log("Connection established");
+        };
+
+        socket.onmessage = function (e) {
+            const data = JSON.parse(e.data);
+            console.log("Message received:", data);
+            $("#messages").append("<p>" + JSON.stringify(data, null, 2) + "</p>");
+        };
+
+        socket.onclose = function (e) {
+            console.log("Connection closed");
+        };
+
+        socket.onerror = function (error) {
+            console.error("WebSocket Error:", error);
+        };
+    }
+
+    function joinGame() {
+        var gameId = $("#gameId").val();
+        if (gameId) {
+            currentGameId = gameId;
+            connectWebSocket();
+        } else {
+            console.error("Game ID is required");
+        }
+    }
+
+    function authorize() {
+        var userId = $("#userId").val();
+        user = {
+            "id": userId
+        }
+        if (userId) {
+            socket.send(
+                JSON.stringify({
+                    "user": user,
+                    "event": "authorization",
+                    "token": userId
+                })
+            )
+        } else {
+            console.error("User ID is required");
+        }
+
+    }
+
+    function sendCoords() {
+        var latitude = $("#latitude").val();
+        var longitude = $("#longitude").val();
+        socket.send(
+            JSON.stringify({
+                "event": "location_update",
+                "user": user,
+                "coordinates": {
+                    latitude, longitude
+                }
+            })
+        )
+    }
+
+    function sendTaskCompleted() {
+        var task_id = $("#taskId").val();
+        var photo_id = $("#taskPhotoId").val();
+        socket.send(
+            JSON.stringify({
+                "user": user,
+                "event": "task_completed",
+                "task_id": task_id,
+                "photo_id": photo_id
+            })
+        )
+    }
+
+    function catchPlayer() {
+        var catchPlayerSecret = $("#catchPlayerSecret").val();
+        socket.send(
+            JSON.stringify({
+                "user": user,
+                "event": "player_caught",
+                "secret": catchPlayerSecret
+            })
+        )
+    }
+
+    function startGame() {
+        socket.send(
+            JSON.stringify({
+                "user": user,
+                "event": "start_game"
+            })
+        )
+    }
+
+    function updateSettings() {
+        var duration = $("#duration").val();
+        var quest_task_ids = $("#questTasks").val().split(" ");
+        if ($("#questTasks").val().length === 0) {
+            quest_task_ids = []
+        }
+        var quest_point = {
+            "id": 1,
+            "tasks": []
+        }
+        quest_task_ids.forEach((quest_task_id) => {
+            quest_point["tasks"].push({"id": quest_task_id})
+        })
+        socket.send(
+            JSON.stringify({
+                "user": user,
+                "event": "settings_update",
+                "settings": {
+                    "duration": duration,
+                    "quest_points": [quest_point]
+                }
+            })
+        )
+    }
+
+    function sendCustomData() {
+        var customData = $("#customData").val();
+        socket.send(
+            customData
+        )
+    }
+
+    function getGameState() {
+        socket.send(
+            JSON.stringify({
+                "user": user,
+                "event": "get_game_state"
+            })
+        )
+    }
+
+    $(document).ready(function () {
+        $("#joinGame").click(joinGame);
+        $("#authorize").click(authorize);
+        $("#sendCoords").click(sendCoords);
+        $("#sendCustomData").click(sendCustomData);
+        $("#sendTaskCompleted").click(sendTaskCompleted);
+        $("#catchPlayer").click(catchPlayer);
+        $("#getGameState").click(getGameState);
+        $("#updateSettings").click(updateSettings);
+        $("#startGame").click(startGame);
+    });
+</script>
+</body>
+</html>

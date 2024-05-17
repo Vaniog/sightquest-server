@@ -1,0 +1,74 @@
+{% extends 'mailer-admin/base.html' %} {% load static %} {% block css%}
+<link rel="stylesheet" href="{% static 'mailer-admin/css/mailing.css' %}" />
+{% endblock %} {% block content %}
+<div class="mailing-container-1">
+  <div class="mailing-section-1">
+    <div class="mailing-upper-section">
+      <form id="emailForm">
+        <div>
+          <label for="subjectInput">Тема письма:</label>
+          <input type="text" id="subjectInput" name="subject" />
+        </div>
+        <div>
+          <label for="htmlInput">Содержимое в HTML:</label>
+          <textarea id="htmlInput" name="htmlContent"></textarea>
+        </div>
+        <div>
+          <label for="pureTextInput">Чистый текст:</label>
+          <textarea id="pureTextInput" name="pureTextContent"></textarea>
+        </div>
+        <button type="submit" id="writeEmailButton">Отправить</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="mailing-container-2">
+  <div class="mailing-lower-section">
+    <div id="filters" class="mailing-filters">
+      <button id="selectAll">Выбрать все</button>
+    </div>
+
+    {% if subscribers %}
+      <form id="mailingListForm">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Выбрать</th>
+                <th>Адрес электронной почты</th>
+                <th>Telegram</th>
+                <th>Одобрено</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for subscriber in subscribers %}
+              <tr>
+                <td>
+                  <input
+                    type="checkbox"
+                    name="email"
+                    value="{{subscriber.email}}"
+                  />
+                </td>
+                <td>{{subscriber.email}}</td>
+                <td>{{subscriber.telegram}}</td>
+                <td>{{subscriber.approved|yesno:"Да,Нет"}}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </form>
+    {% else %}
+      <p>Подписчики отсутствуют.</p>
+    {% endif %}
+
+  </div>
+</div>
+
+<script type="text/javascript">
+  var sendMailingUrl = "{% url 'send-mailing' %}";
+</script>
+
+{% endblock %}

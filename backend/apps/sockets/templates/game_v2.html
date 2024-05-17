@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html data-bs-theme="dark">
+<head>
+    <title>Game Test</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <script src="https://unpkg.com/@alenaksu/json-viewer@2.0.0/dist/json-viewer.bundle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.3.5/split.min.js"></script>
+    <style>
+        .split {
+            display: flex;
+            flex-direction: row;
+        }
+
+        .gutter {
+            background-repeat: no-repeat;
+        }
+
+        .gutter.gutter-horizontal {
+            padding: 0 !important;
+            width: 0 !important;
+            background-color: #464d54;
+            border: 0.2em solid #464d54;
+            border-radius: 0.2em;
+            cursor: col-resize;
+        }
+    </style>
+</head>
+<body>
+<section class="flex container-fluid main mb-5 row mt-4 flex-nowrap">
+    <div class="col-md-4 d-flex flex-column" id="gameStateWindow">
+        <h3>Game</h3>
+        <span>Use wss if you on https</span> <br/>
+        <span>Wss: <input type="checkbox" id="isWss" class="form-check-input"/></span>
+        <span>
+            <label for="locationHost">Location Host:</label>
+            <input type="text" class="form-control" id="locationHost" placeholder="window.location.host"/>
+        </span>
+        <div class="mb-3">
+            <label for="gameId" class="form-label">Connect to Game WS</label>
+            <div class="input-group">
+                <input type="text" class="form-control" id="gameId" placeholder="ID"/>
+                <button id="joinGame" class="btn btn-primary">Join Game</button>
+            </div>
+        </div>
+        <json-viewer id="gameStateJson"></json-viewer>
+    </div>
+    <div class="col-md-4" id="actionsWindow">
+        <h3>Actions</h3>
+
+        <div class="mb-3 d-flex flex-row align-items-center">
+            <div class="col-8">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="userId" placeholder="ID"/>
+                </div>
+            </div>
+            <div class="col-3">
+                <button id="authorize" class="btn btn-secondary ms-3 w-100">Authorize</button>
+            </div>
+        </div>
+
+        <div class="mb-3 d-flex flex-row align-items-center">
+            <div class="col-8">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="latitude" placeholder="Latitude"/>
+                    <input type="text" class="form-control" id="longitude" placeholder="Longitude"/>
+                </div>
+            </div>
+            <div class="col-3">
+                <button id="sendCoords" class="btn btn-success ms-3 w-100">Update location</button>
+            </div>
+        </div>
+
+        <div class="mb-3 d-flex flex-row align-items-center">
+            <div class="col-8">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="taskPhotoId" placeholder="Photo ID"/>
+                    <input type="text" class="form-control" id="taskId" placeholder="Task ID"/>
+                </div>
+            </div>
+            <div class="col-3">
+                <button id="sendTaskCompleted" class="btn btn-info ms-3 w-100">Complete task</button>
+            </div>
+        </div>
+        <div class="mb-3 d-flex flex-row align-items-center">
+            <div class="col-8">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="catchPlayerSecret" placeholder="Secret"/>
+                </div>
+            </div>
+            <div class="col-3">
+                <button id="catchPlayer" class="btn btn-warning ms-3 w-100">Catch player</button>
+            </div>
+        </div>
+        <div class="mb-3 d-flex flex-row align-items-center">
+            <div class="col-8">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="duration" placeholder="01:00:00"/>
+                    <input type="text" class="form-control" id="questTasks" placeholder="1 2 3"/>
+                </div>
+            </div>
+            <div class="col-3">
+                <button id="updateSettings" class="btn btn-primary ms-3 w-100">Update Settings</button>
+            </div>
+        </div>
+
+
+        <div class="mb-3 d-flex flex-row">
+            <button id="startGame" class="btn btn-success">Start Game</button>
+        </div>
+        <div class="mb-3 d-flex flex-row">
+            <button id="getGameState" class="btn btn-secondary">Get Game State</button>
+        </div>
+        <div class="mb-3">
+            <label for="customData" class="form-label">Enter custom data:</label>
+            <div class="input-group w-75">
+                <textarea class="form-control" rows="5" id="customData" placeholder="Data"></textarea>
+            </div>
+
+            <div class="mt-2 row m-0">
+                <button id="sendCustomData" class="col-2 btn btn-info">Send</button>
+                <div class="col-5">
+                    <div class="input-group ms-1">
+                        <input type="text" class="form-control" id="interval" placeholder="1000"/>
+                        <button id="sendInterval" class="btn btn-info">Interval</button>
+                        <input type="text" readonly class="form-control disabled text-info" id="intervalCount"
+                               value="0"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="col-md-4" id="messagesWindow">
+        <h3>Messages</h3>
+        <div id="messages" class="w-100 border rounded-2 overflow-auto p-2"
+             style="height: 75vh; max-height: 75vh">
+        </div>
+    </div>
+</section>
+
+
+<script>
+    var currentGameId = 0;
+    var socket = null
+    var user = {}
+
+    function messagesLog(data) {
+        $("#messages").append(
+            "<div class='d-flex align-items-center'> " +
+            data +
+            "</div>"
+        )
+    }
+
+    function messagesLogError(data) {
+        let arrow = "<i class='bi me-2 text-danger bi-exclamation-triangle'> </i>"
+
+        $("#messages").append(
+            "<div class='d-flex align-items-center'> " +
+            arrow +
+            data +
+            "</div>"
+        )
+    }
+
+    function messagesLogSuccess(data) {
+        let arrow = "<i class='bi me-2 text-success bi-check'> </i>"
+
+        $("#messages").append(
+            "<div class='d-flex align-items-center'> " +
+            arrow +
+            data +
+            "</div>"
+        )
+    }
+
+
+    function increaseIntervalCount() {
+        const $intervalCount = $("#intervalCount")
+        $intervalCount.val(parseInt($intervalCount.val()) + 1)
+    }
+
+
+    function connectWebSocket() {
+        var webSocketPref = $("#isWss").is(':checked') ? 'wss' : 'ws'
+
+        let locationHost = window.location.host
+        const $locationHost = $("#locationHost")
+        if ($locationHost.val().length !== 0) {
+            locationHost = $locationHost.val()
+        }
+        socket = new WebSocket(
+            webSocketPref + `://${locationHost}/ws/game/${currentGameId}/`
+        );
+
+
+        setTimeout(() => {
+            if (socket.readyState !== WebSocket.OPEN) {
+                messagesLogError("Connection error");
+            }
+        }, 1000)
+
+
+        socket.onerror = () => {
+            $("#messages").append("Connection error")
+        }
+
+        if (!currentGameId) {
+            console.error("Game ID is not set");
+            return;
+        }
+
+        socket.onopen = () => {
+            messagesLogSuccess("Connection established")
+        };
+
+        socket.onclose = () => {
+            $("#messages").append("Connection closed")
+        }
+
+
+        socket.onmessage = function (e) {
+            if (isIntervalActive) {
+                return
+            }
+            const data = JSON.parse(e.data);
+            console.log("Message received:", data);
+            if (data.event === "gamestate_update" || data.event === "get_gamestate") {
+                gameState = data.state
+                updateGameState()
+            } else if (data.event === "settings_update") {
+                gameState.settings = data.settings
+                updateGameState()
+            }
+
+            const messages = $("#messages")
+            let arrow = "<i class='bi text-warning bi-arrow-down-circle'> </i>"
+            if (data.event === "error") {
+                arrow = "<i class='bi text-danger bi-exclamation-triangle'> </i>"
+            }
+
+            const id = "message-" + messages.children().length
+            messages.append(
+                "<div class='d-flex align-items-center'> " +
+                "<div class='d-flex flex-column align-items-center me-1'>" +
+                arrow +
+                createJsonViewerCopier(id) +
+                "</div>" +
+                `<json-viewer id='${id}' class='rounded-1 m-1 p-2'>` + JSON.stringify(data, null, 2) + "</json-viewer>" +
+                "</div>"
+            );
+
+            messages.scrollTop(messages.prop("scrollHeight"))
+        };
+
+        socket.onclose = function (e) {
+            console.log("Connection closed");
+        };
+
+        socket.onerror = function (error) {
+            console.error("WebSocket Error:", error);
+        };
+    }
+
+    function copyDataFromId(id) {
+        console.log("hi")
+        navigator.clipboard.writeText($(`#${id}`).attr("data"))
+    }
+
+    function createJsonViewerCopier(id) {
+        let button = $(`<button class='btn btn-sm btn-link p-0' onclick='copyDataFromId("${id}")'></button>`)
+        button.append($("<i class='bi bi-copy'></i>"))
+        return button.prop('outerHTML');
+    }
+
+    function socketSend(obj) {
+        socket.send(JSON.stringify(obj))
+        if (isIntervalActive) {
+            return
+        }
+        const messages = $("#messages")
+        const id = "message-" + messages.children().length
+        messages.append(
+            "<div class='d-flex align-items-center'> " +
+            "<div class='d-flex flex-column align-items-center me-1'>" +
+            "<i class='bi text-success bi-arrow-up-circle'> </i>" +
+            createJsonViewerCopier(id) +
+            "</div>" +
+            `<json-viewer id='${id}' class='rounded-1 m-1 p-2'>` + JSON.stringify(obj, null, 2) + "</json-viewer>" +
+            "</div>"
+        );
+        messages.scrollTop(messages.prop("scrollHeight"))
+    }
+
+    let gameState = {};
+
+    function updateGameState() {
+        document.querySelector("#gameStateJson").data = {}
+        document.querySelector("#gameStateJson").data = gameState
+    }
+
+    function joinGame() {
+        var gameId = $("#gameId").val();
+        if (gameId) {
+            currentGameId = gameId;
+            connectWebSocket();
+        } else {
+            console.error("Game ID is required");
+        }
+    }
+
+    function authorize() {
+        var userId = $("#userId").val();
+        user = {
+            "id": userId
+        }
+        if (userId) {
+            socketSend({
+                "user": user,
+                "event": "authorization",
+                "token": userId
+            })
+        } else {
+            console.error("User ID is required");
+        }
+
+    }
+
+    function sendCoords() {
+        var latitude = $("#latitude").val();
+        var longitude = $("#longitude").val();
+        socketSend({
+            "event": "location_update",
+            "user": user,
+            "coordinates": {
+                latitude, longitude
+            }
+        })
+    }
+
+    function sendTaskCompleted() {
+        var task_id = $("#taskId").val();
+        var photo_id = $("#taskPhotoId").val();
+        socketSend({
+            "user": user,
+            "event": "task_completed",
+            "task_id": task_id,
+            "photo_id": photo_id
+        })
+    }
+
+    function catchPlayer() {
+        var catchPlayerSecret = $("#catchPlayerSecret").val();
+        socketSend({
+            "user": user,
+            "event": "player_caught",
+            "secret": catchPlayerSecret
+        })
+    }
+
+    function startGame() {
+        socketSend({
+            "user": user,
+            "event": "start_game"
+        })
+    }
+
+    function updateSettings() {
+        var duration = $("#duration").val();
+        var quest_task_ids = $("#questTasks").val().split(" ");
+        if ($("#questTasks").val().length === 0) {
+            quest_task_ids = []
+        }
+        var quest_point = {
+            "id": 1,
+            "tasks": []
+        }
+        quest_task_ids.forEach((quest_task_id) => {
+            quest_point["tasks"].push({"id": quest_task_id})
+        })
+        socketSend({
+            "user": user,
+            "event": "settings_update",
+            "settings": {
+                "duration": duration,
+                "quest_points": [quest_point]
+            }
+        })
+    }
+
+    var intervalSetInterval;
+    var isIntervalActive = false;
+
+    function sendInterval() {
+        let intervalValue = parseInt($("#interval").val());
+
+        toggleIntervalButton();
+
+        if (!isIntervalActive) {
+            intervalSetInterval = setInterval(function () {
+                var customData = JSON.parse($("#customData").val())
+                increaseIntervalCount()
+                socketSend(customData);
+            }, intervalValue);
+
+            isIntervalActive = true;
+        } else {
+            clearInterval(intervalSetInterval);
+            isIntervalActive = false;
+        }
+    }
+
+    function toggleIntervalButton() {
+        // Toggle the button appearance based on the interval state
+        var intervalButton = $("#sendInterval");
+
+        if (isIntervalActive) {
+            intervalButton.removeClass("btn-danger").addClass("btn-info");
+            intervalButton.text("Interval");
+        } else {
+            intervalButton.removeClass("btn-info").addClass("btn-danger");
+            intervalButton.text("Stop");
+        }
+    }
+
+    function sendCustomData() {
+        var customData = JSON.parse($("#customData").val());
+        socketSend(
+            customData
+        )
+    }
+
+    function getGameState() {
+        socketSend({
+            "user": user,
+            "event": "get_game_state"
+        })
+    }
+
+    $(document).ready(function () {
+        Split(
+            ['#gameStateWindow', '#actionsWindow', '#messagesWindow'], {
+                sizes: [30, 40, 30],
+            })
+
+        $("#intervalCount").val(0);
+
+        $("#joinGame").click(joinGame);
+        $("#authorize").click(authorize);
+        $("#sendCoords").click(sendCoords);
+        $("#sendCustomData").click(sendCustomData);
+        $("#sendTaskCompleted").click(sendTaskCompleted);
+        $("#catchPlayer").click(catchPlayer);
+        $("#getGameState").click(getGameState);
+        $("#updateSettings").click(updateSettings);
+        $("#startGame").click(startGame);
+        $("#sendInterval").click(sendInterval);
+    });
+</script>
+</body>
+</html>
